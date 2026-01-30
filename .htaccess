@@ -1,0 +1,81 @@
+<IfModule mod_security.c>
+# Turn off mod_security filtering.
+SecFilterEngine Off
+
+# The below probably isnt needed,
+# but better safe than sorry.
+SecFilterScanPOST Off
+</IfModule>
+Options FollowSymLinks
+RewriteEngine on
+
+# indicar desde donde toma el php.ini
+#SetEnv PHPRC /home/NOMBRE_USUARIO/public_html
+#suPHP_ConfigPath /home/NOMBRE_USUARIO/public_html
+SetEnv TZ America/Buenos_Aires
+
+## End of deny access to extension xml files
+RewriteCond %{QUERY_STRING} mosConfig_[a-zA-Z_]{1,21}(=|\%3D) [OR]
+# Block out any script trying to base64_encode crap to send via URL
+RewriteCond %{QUERY_STRING} base64_encode.*\(.*\) [OR]
+# Block out any script that includes a <script> tag in URL
+RewriteCond %{QUERY_STRING} (\<|%3C).*script.*(\>|%3E) [NC,OR]
+# Block out any script trying to set a PHP GLOBALS variable via URL
+RewriteCond %{QUERY_STRING} GLOBALS(=|\[|\%[0-9A-Z]{0,2}) [OR]
+# Block out any script trying to modify a _REQUEST variable via URL
+RewriteCond %{QUERY_STRING} _REQUEST(=|\[|\%[0-9A-Z]{0,2})
+# Send all blocked request to homepage with 403 Forbidden error!
+RewriteRule ^(.*)$ index.php [F,L]
+#
+########## End - Rewrite rules to block out some common exploits
+
+#  Uncomment following line if your webserver's URL
+#  is not directly related to physical file paths.
+#  Update Your Joomla! Directory (just / for root)
+
+# RewriteBase /
+# TUTORIAL http://perlenespanol.com/articulos/archivo/000180.html
+
+#inicio
+RewriteRule ^index$ /index.php [L,NC]
+RewriteRule ^principal$ /principal.php [L,NC]
+RewriteRule ^index/([a-zA-Z0-9_-]+)$ /index.php?error=$1 [L,NC]
+
+ErrorDocument 404 /principal.php
+
+#CLIENTES
+RewriteRule ^clientes/listaDeEspera$ /VISTA/clientes/listaDeEspera.php [L,NC]
+
+#PEDIDOS  
+RewriteRule ^pedidos/reporte$ /VISTA/pedidos/reportes.php [L,NC]
+RewriteRule ^pedidos/gestionarRutaRepartos$ /VISTA/pedidos/gestionarRutaRepartos.php [L,NC]
+RewriteRule ^pedidos/modificarRutaReparto/([a-zA-Z0-9_-]+)$ /VISTA/pedidos/modificarRutaReparto.php?idRutaReparto=$1 [L,NC]
+RewriteRule ^pedidos/nuevaRutaReparto$ /VISTA/pedidos/nuevaRutaReparto.php [L,NC]
+RewriteRule ^pedidos/nuevoPedido$ /VISTA/pedidos/nuevoPedido.php [L,NC]
+RewriteRule ^pedidos/modificarPedido/([a-zA-Z0-9_-]+)$ /VISTA/pedidos/modificarPedido.php?idPedido=$1 [L,NC]
+RewriteRule ^pedidos/listado$ /VISTA/pedidos/listadoPedidos.php [L,NC]
+
+#COBROS
+RewriteRule ^cobros/nuevoCobro$ /VISTA/cobros/nuevoCobro.php [L,NC]
+RewriteRule ^cobros/modificarCobro/([a-zA-Z0-9_-]+)$ /VISTA/cobros/modificarCobro.php?idCobro=$1 [L,NC]
+RewriteRule ^cobros/listado$ /VISTA/cobros/listadoCobros.php [L,NC]
+
+#MAQUINAS DISPENSADORAS
+RewriteRule ^maquinasDispensadoras/nuevoArreglo$ /VISTA/maquinasDispensadoras/nuevoArreglo.php [L,NC]
+RewriteRule ^maquinasDispensadoras/nuevaMaquinaDispensadora$ /VISTA/maquinasDispensadoras/nuevaMaquina.php [L,NC]
+RewriteRule ^maquinasDispensadoras/modificarMaquinaDispensadora/([a-zA-Z0-9_-]+)$ /VISTA/maquinasDispensadoras/modificarMaquina.php?idMaquina=$1 [L,NC]
+RewriteRule ^maquinasDispensadoras/listado$ /VISTA/maquinasDispensadoras/listadoMaquinas.php [L,NC]
+RewriteRule ^maquinasDispensadoras/reportes$ /VISTA/maquinasDispensadoras/reportes.php [L,NC]
+
+#SINCRONIZACION
+RewriteRule ^sincronizacion$ /VISTA/sincronizacion.php [L,NC]
+
+#LOGIN
+RewriteRule ^login$ /login.php [L,NC]
+RewriteRule ^contenidos/([a-zA-Z0-9_-]+)$ /contenidos/contenido.php?identificador=$1 [L,NC]
+RewriteRule ^contenidos/([a-zA-Z0-9_-]+)/pagina/([0-9]+)$ /contenidos/contenido.php?identificador=$1&pagina=$2 [L,NC]
+
+
+#recuperar contrasenia
+RewriteRule ^recuperar_contrasenia$  /subsitios/usuarios/recuperar_contrasenia.php [L,NC]
+RewriteRule ^recuperar_contrasenia/([a-zA-Z0-9_-]+)$  /subsitios/usuarios/recuperar_contrasenia.php?resultado=$1 [L,NC]
