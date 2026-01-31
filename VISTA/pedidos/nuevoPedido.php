@@ -78,7 +78,7 @@
                     <div class="col-sm-4" data-select2-id="44">
                       <div class="form-group">
                         <label for="cliente">Cliente</label>
-                        <select class="form-control form-control-sm select2 select2-hidden-accessible" style="width: 100%;" data-select2-id="1" tabindex="-1" aria-hidden="true">
+                        <select id="cliente" class="form-control form-control-sm select2 select2-hidden-accessible" style="width: 100%;" data-select2-id="1" tabindex="-1" aria-hidden="true">
                             <option selected="selected" data-select2-id="3">Luciana</option>
                             <option data-select2-id="45">Jose</option>
                             <option data-select2-id="46">Maria</option>

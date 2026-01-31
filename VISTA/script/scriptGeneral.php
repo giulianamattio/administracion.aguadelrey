@@ -33,3 +33,4 @@
 <!-- AdminLTE dashboard demo (This is only for demo purposes) -->
 <script src="/dist/js/pages/dashboard.js"></script>
 <script src="/VISTA/script/general.js"></script>
+<script src="/VISTA/script/validaciones.js"></script>
