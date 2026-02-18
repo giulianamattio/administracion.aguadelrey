@@ -20,11 +20,7 @@ if ($idEmpleado) {
         $descripcionRol  = $rsUsuario['nombrerol'];
         $rol             = $rsUsuario['id_rol'];
     }
-} else {
-    // Si no hay sesión, redirigir al login
-    header('Location: /index');
-    exit;
-}
+} 
 ?>
                 
 
