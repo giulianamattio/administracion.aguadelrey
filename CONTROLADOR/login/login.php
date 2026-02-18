@@ -1,53 +1,59 @@
-<?php 
-//Si no obtengo las variables por formulario
-//reviso las variables session
-$usuario = "";
+<?php
+// ============================================================
+//  login.php — autenticación con PDO + PostgreSQL
+// ============================================================
+
+$usuario  = "";
 $password = "";
 
-foreach ($_POST as $key => $value ) {
+// Recibir variables del formulario POST
+foreach ($_POST as $key => $value) {
     if (isset($_POST[$key]))
         $$key = $value;
- }
-
-
-//si usuario esta vacio, se crean las variables
-if ($usuario == ""){
-	//si esta definido el usuario global se establecen las variables de session
-	if (isset($_SESSION['usuario_global'])){
-		$usuario = $_SESSION['usuario_global'];
-		$password = $_SESSION['password_global'];
-	}
 }
 
-//CREO LA CONSULTA con las dos variables que no tienen las comillas
-$consultaUsuario = $safesql->query("SELECT * FROM usuarios WHERE nombre = ?s AND contrasenia = sha1(?s)", 
-$usuario, $password);
-//$resultadoUsuario = mysqli_query($consultaUsuario, MYSQLI_STORE_RESULT); 
-
-//Si hay resultados (es diferente de cero), quiere decir que se encontro el usuario y contrasena ingresados
-if (mysqli_num_rows($consultaUsuario) != 0) {
-
-	$rsUsuario  = mysqli_fetch_array($consultaUsuario, MYSQLI_ASSOC);
-
-	
-//si no esta definida la variable de session, se definen usando las variables de la consulta
-	if (!isset($_SESSION['usuario_global']) or ($_SESSION['usuario_global'] != $usuario or $_SESSION['password_global'] != $password)){
-
-		$_SESSION['usuario_global'] = $usuario;
-		$_SESSION['password_global'] = $password;
-	}
+// Si no vienen por POST, intentar recuperar de sesión activa
+if ($usuario == "") {
+    if (isset($_SESSION['usuario_global'])) {
+        $usuario  = $_SESSION['usuario_global'];
+        $password = $_SESSION['password_global'];
+    }
 }
 
-else { 
-?>
-<html>
-<head>
-<script language="JavaScript">
-window.top.location.href="/index/error" 
-</script>
-</head>
-</html>
-<?php
-	die();
+// Consulta con prepared statement PDO — busca por email
+// Usamos email como campo de login porque es único en la tabla
+$stmt = $conexionbd->prepare(
+    "SELECT * FROM usuario_empleado WHERE email = :email AND activo = TRUE"
+);
+$stmt->execute([':email' => $usuario]);
+$rsUsuario = $stmt->fetch();
+
+// Verificar que el usuario existe Y que la contraseña es correcta
+// password_verify compara el input contra el hash almacenado en BD
+if ($rsUsuario && password_verify($password, $rsUsuario['password_hash'])) {
+
+    // Establecer variables de sesión si no estaban definidas
+    if (!isset($_SESSION['usuario_global']) ||
+        $_SESSION['usuario_global'] != $usuario) {
+
+        $_SESSION['usuario_global']  = $usuario;
+        $_SESSION['password_global'] = $password;
+        $_SESSION['id_empleado']     = $rsUsuario['id_empleado'];
+        $_SESSION['rol']             = $rsUsuario['id_rol'];
+        $_SESSION['nombre']          = $rsUsuario['nombre'] . ' ' . $rsUsuario['apellido'];
+    }
+
+} else {
+    // Login fallido — redirigir a página de error
+    ?>
+    <html>
+    <head>
+    <script language="JavaScript">
+        window.top.location.href = "/index/error"
+    </script>
+    </head>
+    </html>
+    <?php
+    die();
 }
 ?>
