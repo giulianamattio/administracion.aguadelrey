@@ -1,26 +1,29 @@
 <?php
-$idUsuario = 1;
-$consultaUsuario = $safesql->query("SELECT usuarios.nombre as nombreUsuario, usuarios.idRol as idRol, 
-roles.descripcion as nombreRol FROM usuarios INNER JOIN roles ON roles.idRol = usuarios.idRol 
-WHERE usuarios.idUsuario = ?i", $idUsuario);	
+// Recuperar datos del usuario logueado desde la sesión
+$idEmpleado = $_SESSION['id_empleado'] ?? null;
+$nombreUsuario = $_SESSION['nombre'] ?? 'Usuario';
+$rol = $_SESSION['rol'] ?? null;
 
-if (mysqli_num_rows($consultaUsuario) != 0) {	
-	$rsUsuario = mysqli_fetch_array($consultaUsuario, MYSQLI_ASSOC);
-  $nombreUsuario = $rsUsuario["nombreUsuario"];
-	$descripcionRol = $rsUsuario["nombreRol"];
-	$rol = $rsUsuario["idRol"];
-}
-?>
+// Si hay sesión activa, enriquecer con datos de BD
+if ($idEmpleado) {
+    $stmt = $conexionbd->prepare("
+        SELECT e.nombre, e.apellido, r.nombre AS nombreRol, e.id_rol
+        FROM usuario_empleado e
+        INNER JOIN rol r ON r.id_rol = e.id_rol
+        WHERE e.id_empleado = :id
+    ");
+    $stmt->execute([':id' => $idEmpleado]);
+    $rsUsuario = $stmt->fetch();
 
-<?php
-$idUsuario = 1;
-require($_SERVER["DOCUMENT_ROOT"].'/MODELO/UsuarioClass.php');
-$usuario = usuario::buscarUsuarioPorId(1);
-if($usuario){
-  $nombreUsuario = $usuario->getNombre();
-  
-}else{
-  echo 'El usuario no ha podido ser encontrado';
+    if ($rsUsuario) {
+        $nombreUsuario   = $rsUsuario['nombre'] . ' ' . $rsUsuario['apellido'];
+        $descripcionRol  = $rsUsuario['nombrerol'];
+        $rol             = $rsUsuario['id_rol'];
+    }
+} else {
+    // Si no hay sesión, redirigir al login
+    header('Location: /index');
+    exit;
 }
 ?>
                 
