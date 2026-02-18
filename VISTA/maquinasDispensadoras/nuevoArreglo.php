@@ -1,4 +1,4 @@
-<?php require($_SERVER["DOCUMENT_ROOT"].'/configuraciones/inicializacion.php'); ?>
+<?php require_once($_SERVER["DOCUMENT_ROOT"].'/configuraciones/inicializacion.php'); ?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
