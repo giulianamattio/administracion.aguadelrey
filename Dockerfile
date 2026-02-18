@@ -13,11 +13,12 @@ RUN apt-get update && apt-get install -y \
     libfreetype6-dev \
     libonig-dev \
     libicu-dev \
+    libpq-dev \
     unzip \
     git \
     curl \
     && docker-php-ext-configure gd --with-freetype --with-jpeg \
-    && docker-php-ext-install -j$(nproc) pdo pdo_mysql mysqli gd zip intl opcache \
+    && docker-php-ext-install -j$(nproc) pdo pdo_mysql pdo_pgsql mysqli gd zip intl opcache \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # Habilitar rewrite
