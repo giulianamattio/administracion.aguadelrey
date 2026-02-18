@@ -54,7 +54,7 @@
           <!-- left column -->
           <div class="col-md-12">
             <div class="card card-primary">
-              <form>
+              <form action="/maquinasDispensadoras/guardarNuevaMaquina" method="POST">
                 <div class="card-body">
                     
                 <div class="row">
@@ -88,10 +88,16 @@
                       <div class="form-group">
                         <label for="tipo">Tipo</label>
                         <select id="tipo" class="form-control form-control-sm">
-                            <option value="seleccioneTipo" selected>Tipo de Máquina</option>
-                            <option value="">Manual</option>
-                            <option value="">Eléctrica</option>
-                            <option value="">Eléctrica Digital</option>
+                          <option value="" selected disabled>Seleccione un estado</option>
+                          <?php
+                          $stmtEstados = $conexionbd->prepare("SELECT id_estado, nombre FROM estado_maquina ORDER BY nombre");
+                          $stmtEstados->execute();
+                          $estados = $stmtEstados->fetchAll();
+                          foreach ($estados as $est): ?>
+                              <option value="<?= $est['id_estado'] ?>">
+                                  <?= htmlspecialchars($est['nombre']) ?>
+                              </option>
+                          <?php endforeach; ?>
                         </select>
                       </div>
                     </div>

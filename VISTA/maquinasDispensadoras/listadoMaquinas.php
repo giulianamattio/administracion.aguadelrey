@@ -66,92 +66,46 @@
                       <th>Acciones</th>
                     </tr>
                   </thead>
-                  <tbody>
-                    <?php
-                    /*if (mysqli_num_rows($consultaMaquinas) != 0) {
-                      $rsMaquinas = mysqli_fetch_array($consultaMaquinas, MYSQLI_ASSOC);
-
-                      while($rsMaquinas!=NULL){
-                        ?>
+                    <tbody>
+                    <?php if (count($listadoMaquinas) > 0): ?>
+                        <?php foreach ($listadoMaquinas as $maquina): ?>
                         <tr>
-                          <td><?=$rsMaquinas['numeroSerie']?></td>
-                          <td><?=$rsMaquinas['numeroPrecinto']?></td>
-                          <td><?=$rsMaquinas['tipoDisp']?></td>
-                          <td><span class="badge badge-warning"><?=$rsMaquinas['estadoDisp']?></span></td>
-                          <td>
-                            <i class="fas fa-minus-square fa-lg " style="color: #dc3545;"></i>
-                            &nbsp;
-                            <a href="/maquinasDispensadoras/modificarMaquinaDispensadora/1">
-                              <i class="fas fa-pen-square fa-lg" style="color: #ffc107;"></i>
-                            </a>
-                          </td>
+                            <td><?= htmlspecialchars($maquina['numero_serie']) ?></td>
+                            <td><?= htmlspecialchars($maquina['numero_precinto'] ?? '-') ?></td>
+                            <td><?= htmlspecialchars($maquina['marca'] ?? '-') ?></td>
+                            <td>
+                                <?php
+                                // Asignamos color del badge según el estado
+                                $badges = [
+                                    'disponible'    => 'success',
+                                    'en_cliente'    => 'info',
+                                    'en_reparacion' => 'warning',
+                                    'baja'          => 'danger',
+                                ];
+                                $color = $badges[$maquina['estado']] ?? 'secondary';
+                                ?>
+                                <span class="badge badge-<?= $color ?>">
+                                    <?= htmlspecialchars($maquina['estado']) ?>
+                                </span>
+                            </td>
+                            <td>
+                                <a href="/maquinasDispensadoras/modificarMaquinaDispensadora/<?= $maquina['id_maquina'] ?>">
+                                    <i class="fas fa-pen-square fa-lg" style="color: #ffc107;" title="Modificar"></i>
+                                </a>
+                                &nbsp;
+                                <a href="/maquinasDispensadoras/bajaMaquina/<?= $maquina['id_maquina'] ?>"
+                                  onclick="return confirm('¿Confirmás la baja de esta máquina?')">
+                                    <i class="fas fa-minus-square fa-lg" style="color: #dc3545;" title="Dar de baja"></i>
+                                </a>
+                            </td>
                         </tr>
-                        <?php                        
-                        }
-                      ?>
-
-                      <?php
-                    }else{
-                      ?>
-                      <tr>
-                        <td>No se encontraron resultados</td>
-                      </tr
-                      <?php
-                    }*/
-                    ?>
-                   <tr>
-                      <td>R125899</td>
-                      <td>356</td>
-                      <td>Electrónica</td>
-                      <td><span class="badge badge-warning">En reparación</span></td>
-                      <td>
-                        <i class="fas fa-minus-square fa-lg " style="color: #dc3545;"></i>
-                        &nbsp;
-                        <a href="/maquinasDispensadoras/modificarMaquinaDispensadora/1">
-                          <i class="fas fa-pen-square fa-lg" style="color: #ffc107;"></i>
-                        </a>
-                      </td>
-                    </tr>
-                    <tr>
-                      <td>Q8569455</td>
-                      <td>200</td>
-                      <td>Manual</td>
-                      <td><span class="badge badge-success">En domicilio</span></td>
-                      <td>
-                        <i class="fas fa-minus-square fa-lg " style="color: #dc3545;"></i>
-                        &nbsp;
-                        <a href="/maquinasDispensadoras/modificarMaquinaDispensadora/1">
-                          <i class="fas fa-pen-square fa-lg" style="color: #ffc107;"></i>
-                        </a>
-                      </td>
-                    </tr>
-                    <tr>
-                      <td>R8996555</td>
-                      <td>450</td>
-                      <td>Electr&oacute;nica Digital</td>
-                      <td><span class="badge badge-danger">Baja</span></td>
-                      <td>
-                        <i class="fas fa-minus-square fa-lg " style="color: #dc3545;"></i>
-                        &nbsp;
-                        <a href="/maquinasDispensadoras/modificarMaquinaDispensadora/1">
-                          <i class="fas fa-pen-square fa-lg" style="color: #ffc107;"></i>
-                        </a>
-                      </td>
-                    </tr>
-                    <tr>
-                      <td>E89152555</td>
-                      <td>145</td>
-                      <td>Electr&oacute;nica Digital</td>
-                      <td><span class="badge badge-info">En planta</span></td>
-                      <td>
-                      <i class="fas fa-minus-square fa-lg " style="color: #dc3545;"></i>
-                        &nbsp;
-                        <a href="/maquinasDispensadoras/modificarMaquinaDispensadora/1">
-                          <i class="fas fa-pen-square fa-lg" style="color: #ffc107;"></i>
-                        </a>
-                      </td>
-                    </tr>
-                  </tbody>
+                        <?php endforeach; ?>
+                    <?php else: ?>
+                        <tr>
+                            <td colspan="5" class="text-center">No se encontraron máquinas registradas.</td>
+                        </tr>
+                    <?php endif; ?>
+                    </tbody>
                 </table>
               </div>
               <!-- /.card-body -->
