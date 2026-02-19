@@ -1,4 +1,10 @@
-<?php require_once($_SERVER["DOCUMENT_ROOT"].'/configuraciones/inicializacion.php'); ?>
+<?php
+// 1. Primero procesar el login si hay POST — antes de cualquier verificación de sesión
+require_once($_SERVER["DOCUMENT_ROOT"].'/CONTROLADOR/login/login.php');
+
+// 2. Recién ahora inicializar (verifica sesión, redirige si no hay)
+require_once($_SERVER["DOCUMENT_ROOT"].'/configuraciones/inicializacion.php');
+?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
