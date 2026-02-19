@@ -93,10 +93,12 @@
                                     <i class="fas fa-pen-square fa-lg" style="color: #ffc107;" title="Modificar"></i>
                                 </a>
                                 &nbsp;
-                                <a href="/maquinasDispensadoras/bajaMaquina/<?= $maquina['id_maquina'] ?>"
-                                  onclick="return confirm('¿Confirmás la baja de esta máquina?')">
-                                    <i class="fas fa-minus-square fa-lg" style="color: #dc3545;" title="Dar de baja"></i>
-                                </a>
+                                  <a href="#" 
+                                    class="btn-baja"
+                                    data-id="<?= $maquina['id_maquina'] ?>"
+                                    title="Dar de baja">
+                                      <i class="fas fa-minus-square fa-lg" style="color: #dc3545;"></i>
+                                  </a>  
                             </td>
                         </tr>
                         <?php endforeach; ?>
@@ -143,6 +145,16 @@
 <?php 
   require($_SERVER["DOCUMENT_ROOT"].'/VISTA/script/scriptGeneral.php');
 ?>
-
+<script>
+document.querySelectorAll('.btn-baja').forEach(function(btn) {
+    btn.addEventListener('click', function(e) {
+        e.preventDefault();
+        var id = this.getAttribute('data-id');
+        if (confirm('¿Confirmás la baja de esta máquina?')) {
+            window.location.href = '/maquinasDispensadoras/bajaMaquina/' + id;
+        }
+    });
+});
+</script>
 </body>
 </html>
