@@ -23,11 +23,11 @@ function mostrarErrorUsuario(error){
       mostrarErrorUsuario(true);
       mostrarErrorPassword(true);
       return (false);
-    }else if ((theForm.usuario.value != "" || theForm.usuario.value != NULL) && theForm.password.value == ""){
+    }else if ((theForm.usuario.value != "" || theForm.usuario.value != null) && theForm.password.value == ""){
       mostrarErrorUsuario(false);
       mostrarErrorPassword(true);
       return (false);
-    }else if (theForm.usuario.value == "" && (theForm.password.value != "" && theForm.password.value != NULL)){
+    }else if (theForm.usuario.value == "" && (theForm.password.value != "" && theForm.password.value != null)){
       mostrarErrorUsuario(true);
       mostrarErrorPassword(false);
       return (false);
