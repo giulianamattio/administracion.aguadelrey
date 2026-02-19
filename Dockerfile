@@ -36,6 +36,11 @@ COPY . /var/www/html
 RUN chown -R www-data:www-data /var/www/html \
     && chmod -R 755 /var/www/html
 
+# Crear directorio de sesiones PHP y darle permisos a Apache
+RUN mkdir -p /var/lib/php/sessions && \
+    chown -R www-data:www-data /var/lib/php/sessions && \
+    chmod 777 /var/lib/php/sessions
+    
 # Puerto por defecto (Render detecta 80)
 EXPOSE 80
 
