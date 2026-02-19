@@ -26,7 +26,6 @@
   <?php 
   require($_SERVER["DOCUMENT_ROOT"].'/VISTA/encabezado.php');
   require($_SERVER["DOCUMENT_ROOT"].'/VISTA/menu.php');
-
   ?>
 
   <?php
