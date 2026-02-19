@@ -87,7 +87,7 @@
                     <div class="col-sm-4" data-select2-id="44">
                       <div class="form-group">
                         <label for="tipo">Tipo</label>
-                        <select id="tipo" class="form-control form-control-sm">
+                        <select id="tipo" name="tipo" class="form-control form-control-sm">
                           <option value="" selected disabled>Seleccione un estado</option>
                           <?php
                           $stmtEstados = $conexionbd->prepare("SELECT id_estado, nombre FROM estado_maquina ORDER BY nombre");

@@ -1,13 +1,18 @@
 <?php
 ob_start();
 if (session_status() === PHP_SESSION_NONE) {
-    session_save_path('/var/lib/php/sessions');
     session_start();
 }
 require_once($_SERVER['DOCUMENT_ROOT'] . '/configuraciones/inicializacion.php');
 
+// Validación de campos obligatorios
 if (empty($_POST['serie'])) {
     header('Location: /maquinasDispensadoras/nuevaMaquinaDispensadora?error=serie_requerida');
+    exit;
+}
+
+if (empty($_POST['tipo'])) {
+    header('Location: /maquinasDispensadoras/nuevaMaquinaDispensadora?error=tipo_requerido');
     exit;
 }
 
@@ -19,7 +24,7 @@ $stmt = $conexionbd->prepare("
 ");
 
 $stmt->execute([
-    ':id_estado'       => $_POST['tipo'],
+    ':id_estado'       => (int) $_POST['tipo'],
     ':numero_serie'    => trim($_POST['serie']),
     ':marca'           => trim($_POST['descripcion']),
     ':modelo'          => '',

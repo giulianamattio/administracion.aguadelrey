@@ -2,7 +2,7 @@
 // ob_start() PRIMERO — activa el buffer de output.
 // Esto evita "headers already sent" sin importar qué pase después.
 ob_start();
-session_save_path('/var/lib/php/sessions'); 
+
 // session_status() evita llamar session_start() dos veces
 // si el archivo se incluye más de una vez en el mismo request.
 if (session_status() === PHP_SESSION_NONE) {
