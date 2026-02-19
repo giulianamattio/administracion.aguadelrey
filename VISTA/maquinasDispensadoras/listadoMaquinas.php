@@ -50,10 +50,33 @@
           <div class="col-md-12">
             <div class="card">
               <div class="card-header">
-                <h3 class="card-title">
-                    <a href="/maquinasDispensadoras/nuevaMaquinaDispensadora" type="button" class="btn btn-block btn-success">Nueva Máquina</a>
-                </h3>
-                </div>
+    <div class="row align-items-center">
+
+        <div class="col-auto">
+            <a href="/maquinasDispensadoras/nuevaMaquinaDispensadora" 
+               class="btn btn-success">
+                Nueva Máquina
+            </a>
+        </div>
+
+        <div class="col-auto">
+            <form method="GET" action="/maquinasDispensadoras/listado" 
+                  class="form-inline">
+                <select name="estado" class="form-control form-control-sm mr-2"
+                        onchange="this.form.submit()">
+                    <option value="">-- Todos los estados --</option>
+                    <?php foreach ($estados as $est): ?>
+                        <option value="<?= $est['id_estado'] ?>"
+                            <?= (isset($_GET['estado']) && $_GET['estado'] == $est['id_estado']) ? 'selected' : '' ?>>
+                            <?= htmlspecialchars($est['nombre']) ?>
+                        </option>
+                    <?php endforeach; ?>
+                </select>
+            </form>
+        </div>
+
+    </div>
+</div>
               <!-- /.card-header -->
               <div class="card-body">
                 <table class="table table-bordered">
