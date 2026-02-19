@@ -1,3 +1,4 @@
+<?php require_once($_SERVER["DOCUMENT_ROOT"].'/configuraciones/inicializacion.php'); ?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -7,7 +8,6 @@
 
   <link rel="Agua del rey" href="/favicon.ico">
   <?php 
-  require($_SERVER["DOCUMENT_ROOT"].'/configuraciones/inicializacion.php');
   require($_SERVER["DOCUMENT_ROOT"].'/VISTA/css/cssGeneral.php');
   require($_SERVER["DOCUMENT_ROOT"].'/CONTROLADOR/login/login.php');
   ?>
