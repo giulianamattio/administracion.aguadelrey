@@ -61,6 +61,7 @@ RewriteRule ^cobros/modificarCobro/([a-zA-Z0-9_-]+)$ /VISTA/cobros/modificarCobr
 RewriteRule ^cobros/listado$ /VISTA/cobros/listadoCobros.php [L,NC]
 
 #MAQUINAS DISPENSADORAS
+RewriteRule ^maquinasDispensadoras/guardarNuevaMaquina$ /CONTROLADOR/maquinasDispensadoras/guardarNuevaMaquina.php [L,NC]
 RewriteRule ^maquinasDispensadoras/nuevoArreglo$ /VISTA/maquinasDispensadoras/nuevoArreglo.php [L,NC]
 RewriteRule ^maquinasDispensadoras/nuevaMaquinaDispensadora$ /VISTA/maquinasDispensadoras/nuevaMaquina.php [L,NC]
 RewriteRule ^maquinasDispensadoras/modificarMaquinaDispensadora/([a-zA-Z0-9_-]+)$ /VISTA/maquinasDispensadoras/modificarMaquina.php?idMaquina=$1 [L,NC]

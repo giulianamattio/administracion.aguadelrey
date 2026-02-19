@@ -1,12 +1,11 @@
 <?php
-// ============================================================
-//  CONTROLADOR/maquinasDispensadoras/guardarNuevaMaquina.php
-//  Procesa el POST del formulario nuevaMaquina
-// ============================================================
+ob_start();
+if (session_status() === PHP_SESSION_NONE) {
+    session_save_path('/var/lib/php/sessions');
+    session_start();
+}
+require_once($_SERVER['DOCUMENT_ROOT'] . '/configuraciones/inicializacion.php');
 
-require($_SERVER['DOCUMENT_ROOT'] . '/configuraciones/inicializacion.php');
-
-// Validación básica — que vengan los campos obligatorios
 if (empty($_POST['serie'])) {
     header('Location: /maquinasDispensadoras/nuevaMaquinaDispensadora?error=serie_requerida');
     exit;
@@ -20,14 +19,13 @@ $stmt = $conexionbd->prepare("
 ");
 
 $stmt->execute([
-    ':id_estado'       => $_POST['tipo'],           // el select de estado
+    ':id_estado'       => $_POST['tipo'],
     ':numero_serie'    => trim($_POST['serie']),
     ':marca'           => trim($_POST['descripcion']),
-    ':modelo'          => '',                        // campo para ampliar después
+    ':modelo'          => '',
     ':numero_precinto' => trim($_POST['precinto']),
     ':observaciones'   => '',
 ]);
 
-// Redirigir al listado con mensaje de éxito
-header('Location: /maquinasDispensadoras/listadoMaquinasDispensadoras?ok=1');
+header('Location: /maquinasDispensadoras/listado?ok=1');
 exit;
