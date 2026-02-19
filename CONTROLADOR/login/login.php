@@ -1,14 +1,14 @@
 <?php
 // ============================================================
-//  CONTROLADOR/login/login.php
-//  Solo procesa autenticación cuando hay un POST del formulario.
-//  Si no hay POST, no hace nada y principal.php muestra el dashboard.
+//  CONTROLADOR/login/login.php — versión diagnóstico
 // ============================================================
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($_POST['usuario'])) {
 
     $usuario  = trim($_POST['usuario']);
     $password = trim($_POST['password']);
+
+    error_log("LOGIN INTENTO — usuario: " . $usuario);
 
     $stmt = $conexionbd->prepare(
         "SELECT * FROM usuario_empleado WHERE email = :email AND activo = TRUE"
@@ -18,18 +18,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($_POST['usuario'])) {
 
     if ($rsUsuario && password_verify($password, $rsUsuario['password_hash'])) {
 
+        error_log("LOGIN OK — id_empleado: " . $rsUsuario['id_empleado']);
+
         $_SESSION['usuario_global']  = $usuario;
         $_SESSION['password_global'] = $password;
         $_SESSION['id_empleado']     = $rsUsuario['id_empleado'];
         $_SESSION['rol']             = $rsUsuario['id_rol'];
         $_SESSION['nombre']          = $rsUsuario['nombre'] . ' ' . $rsUsuario['apellido'];
 
-        // Login exitoso — redirigir al dashboard
+        error_log("SESSION guardada — id_empleado: " . $_SESSION['id_empleado']);
+        error_log("SESSION ID: " . session_id());
+
         header('Location: /principal');
         exit;
 
     } else {
-        // Credenciales incorrectas — volver al login con error
+        error_log("LOGIN FALLO — rsUsuario: " . ($rsUsuario ? 'encontrado pero pass mal' : 'no encontrado'));
         header('Location: /index?error=credenciales');
         exit;
     }
