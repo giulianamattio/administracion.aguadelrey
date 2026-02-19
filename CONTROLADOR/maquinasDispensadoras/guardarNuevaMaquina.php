@@ -1,11 +1,12 @@
 <?php
+// ============================================================
+//  CONTROLADOR/maquinasDispensadoras/guardarNuevaMaquina.php
+// ============================================================
 ob_start();
-if (session_status() === PHP_SESSION_NONE) {
-    session_start();
-}
+
+require_once($_SERVER['DOCUMENT_ROOT'] . '/configuraciones/session.php');
 require_once($_SERVER['DOCUMENT_ROOT'] . '/configuraciones/inicializacion.php');
 
-// Validación de campos obligatorios
 if (empty($_POST['serie'])) {
     header('Location: /maquinasDispensadoras/nuevaMaquinaDispensadora?error=serie_requerida');
     exit;

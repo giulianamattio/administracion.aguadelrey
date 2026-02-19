@@ -1,21 +1,13 @@
 <?php
 // ============================================================
 //  CONTROLADOR/login/login.php
-//  Se ejecuta ANTES que inicializacion.php desde principal.php
-//  para que el POST se procese antes de la verificación de sesión
 // ============================================================
+ob_start();
+
+require_once($_SERVER['DOCUMENT_ROOT'] . '/configuraciones/session.php');
+require_once($_SERVER['DOCUMENT_ROOT'] . '/configuraciones/conexionBD.php');
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($_POST['usuario'])) {
-
-    // Iniciar buffer y sesión de forma independiente
-    ob_start();
-    if (session_status() === PHP_SESSION_NONE) {
-        session_save_path('/var/lib/php/sessions');
-        session_start();
-    }
-
-    // Conexión propia a la BD
-    require_once($_SERVER['DOCUMENT_ROOT'] . '/configuraciones/conexionBD.php');
 
     $usuario  = trim($_POST['usuario']);
     $password = trim($_POST['password']);
@@ -43,12 +35,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($_POST['usuario'])) {
         exit;
 
     } else {
-        error_log("LOGIN FALLO — usuario: " . $usuario . " — encontrado: " . ($rsUsuario ? 'si, pass incorrecta' : 'no encontrado'));
+        error_log("LOGIN FALLO — " . ($rsUsuario ? 'password incorrecta' : 'usuario no encontrado'));
         header('Location: /index?error=credenciales');
         exit;
     }
 }
-
 
 
 
