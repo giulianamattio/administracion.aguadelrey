@@ -32,17 +32,17 @@ if ($otroDiagnostico !== '') {
 }
 
 $stmt = $conexionbd->prepare("
-    INSERT INTO arreglo_maquina (id_maquina, fecha_ingreso, descripcion, resuelto, observaciones)
-    VALUES (:id_maquina, :fecha_ingreso, :descripcion, FALSE, :observaciones)
+    INSERT INTO arreglo_maquina (id_maquina, id_reparador, fecha_ingreso, descripcion, resuelto, observaciones)
+    VALUES (:id_maquina, :id_reparador, :fecha_ingreso, :descripcion, FALSE, :observaciones)
 ");
 
 $stmt->execute([
     ':id_maquina'    => (int) $_POST['idMaquina'],
+    ':id_reparador'  => (int) $_SESSION['id_empleado'],
     ':fecha_ingreso' => $_POST['fecha'],
     ':descripcion'   => $diagnosticoFinal,
     ':observaciones' => '',
 ]);
-
 // Cambiar estado de la máquina a 'en_reparacion'
 $stmtEstado = $conexionbd->prepare("
     SELECT id_estado FROM estado_maquina WHERE nombre = 'en_reparacion'
