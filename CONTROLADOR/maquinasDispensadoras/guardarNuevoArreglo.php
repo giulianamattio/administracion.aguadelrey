@@ -32,14 +32,14 @@ if ($otroDiagnostico !== '') {
 }
 
 $stmt = $conexionbd->prepare("
-    INSERT INTO arreglo_maquina (id_maquina, fecha_arreglo, diagnostico, observaciones)
-    VALUES (:id_maquina, :fecha_arreglo, :diagnostico, :observaciones)
+    INSERT INTO arreglo_maquina (id_maquina, fecha_ingreso, descripcion, resuelto, observaciones)
+    VALUES (:id_maquina, :fecha_ingreso, :descripcion, FALSE, :observaciones)
 ");
 
 $stmt->execute([
     ':id_maquina'    => (int) $_POST['idMaquina'],
-    ':fecha_arreglo' => $_POST['fecha'],
-    ':diagnostico'   => $diagnosticoFinal,
+    ':fecha_ingreso' => $_POST['fecha'],
+    ':descripcion'   => $diagnosticoFinal,
     ':observaciones' => '',
 ]);
 
