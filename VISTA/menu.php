@@ -147,19 +147,31 @@ if ($idEmpleado) {
             </a>
           </li>
           <li class="nav-item">
-            <a href="/maquinasDispensadoras/listado" class="nav-link">
-              <i class="nav-icon fas fa-list-ul"></i>
-              <p>
-                Listado Máquinas
-                <span class="badge badge-info right">4</span>
-              </p>
-            </a>
+              <a href="/maquinasDispensadoras/listado" class="nav-link">
+                <i class="nav-icon fas fa-list-ul"></i>
+                  <p>
+                      Listado Máquinas
+                      <?php
+                      $stmtEnReparacion = $conexionbd->prepare("
+                          SELECT COUNT(*) AS total
+                          FROM maquina_dispensadora m
+                          INNER JOIN estado_maquina e ON e.id_estado = m.id_estado
+                          WHERE e.nombre = 'en_reparacion'
+                      ");
+                      $stmtEnReparacion->execute();
+                      $totalEnReparacion = $stmtEnReparacion->fetch()['total'];
+                      if ($totalEnReparacion > 0):
+                      ?>
+                          <span class="badge badge-warning right"><?= $totalEnReparacion ?></span>
+                      <?php endif; ?>
+                  </p>
+              </a>
           </li>
           <li class="nav-item">
             <a href="/maquinasDispensadoras/reportes" class="nav-link">
-              <i class="nav-icon fas fa-chart-line"></i>
+              <i class="nav-icon fas fa-tools"></i>
               <p>
-                Reportes
+                Arreglos de Máquinas
               </p>
             </a>
           </li>
