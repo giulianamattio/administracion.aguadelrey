@@ -79,11 +79,17 @@
                       <div class="form-group">
                         <label for="cliente">Cliente</label>
                         <select id="cliente" class="form-control form-control-sm select2 select2-hidden-accessible" style="width: 100%;" data-select2-id="1" tabindex="-1" aria-hidden="true">
-                            <option selected="selected" data-select2-id="3">Luciana</option>
-                            <option data-select2-id="45">Jose</option>
-                            <option data-select2-id="46">Maria</option>
-                            <option data-select2-id="47">Ricardo</option>
-                            <option data-select2-id="48">Carla</option>
+                              <option value="0">Seleccione el cliente</option>
+                              <?php
+                                $consultaClientes = $safesql->query("SELECT idCliente, nombreCompleto FROM clientes WHERE fechaBaja IS NULL");
+                                while($rsClientes = mysqli_fetch_array($consultaClientes, MYSQLI_ASSOC)){
+                                  $idCliente = $rsClientes["idCliente"];
+                                  $nombreCliente = $rsClientes["nombreCompleto"];
+                                  ?>
+                                  <option value="<?=$idCliente?>"><?= $nombreCliente?></option>
+                                  <?php
+                                }
+                                ?>    
                         </select>
 
                       </div>
@@ -93,7 +99,12 @@
                     <div class="col-sm-4">
                       <div class="form-group">
                         <label for="total">Monto total del pedido</label>
-                        <input type="texto" id="total" name="total" class="form-control form-control-sm" placeholder="">  
+                        <div class="input-group">
+                          <div class="input-group-prepend">
+                              <span class="input-group-text form-control-sm" id="basic-addon1">$</span>
+                          </div>
+                          <input type="texto" id="total" name="total" class="form-control form-control-sm" placeholder="">  
+                        </div>
                       </div>
                     </div>
 
@@ -113,13 +124,22 @@
                     <tbody> 
                         <tr>
                             <td>
-                                <select class="form-control form-control-sm" id="productos">
-                                    <option value="bidon20" selected>Bidón 20 litros</option>
-                                    <option value="bidon10">Bidán 10 litros</option>
+                                <select class="form-control form-control-sm" id="producto1">
+                                <option value="0">Seleccione el producto</option>
+                                    <?php
+                                      $consultaProductos = $safesql->query("SELECT idProducto, descripcion FROM productos WHERE fechaBaja IS NULL");
+                                      while($rsProductos= mysqli_fetch_array($consultaProductos, MYSQLI_ASSOC)){
+                                        $idProducto = $rsProductos["idProducto"];
+                                        $descProducto = $rsProductos["descripcion"];
+                                        ?>
+                                        <option value="<?=$idProducto?>"><?= $descProducto?></option>
+                                        <?php
+                                      }
+                                      ?>    
                                 </select> 
                             </td> 
                             <td> 
-                                <input type="number" class="form-control form-control-sm" name="cantidad" class="cantidad" />  
+                                <input type="number" class="form-control form-control-sm" id="cantidad1" name="cantidad1" class="cantidad" />  
                             </td> 
                             <td>  
                                 <i class="fas fa-minus-square fa-lg button_eliminar_producto" style="color: #dc3545;"></i>
@@ -129,6 +149,8 @@
                     <tfoot> 
                         <tr> 
                         <td colspan="3"> 
+                        <input type="hidden" name = "cantidadProductoActual" id="cantidadProductoActual"  value = "1">
+                        <!--<input type="text" name = "cantidadProductoActual" id="cantidadProductoActual"  value = "1">-->
                             <div class="row align-items-center h-100 justify-content-center" style="margin-top: 5px;">
                                 <i class="nav-icon fas fa-plus-square fa-lg button_agregar_producto" style="color: #28a745;"></i>
                             </div>
