@@ -1,3 +1,4 @@
+<?php require_once($_SERVER["DOCUMENT_ROOT"].'/configuraciones/inicializacion.php'); ?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -10,7 +11,6 @@
 
   <link rel="Agua del rey" href="/favicon.ico">
   <?php 
-  require($_SERVER["DOCUMENT_ROOT"].'/configuraciones/inicializacion.php');
   require($_SERVER["DOCUMENT_ROOT"].'/VISTA/css/cssGeneral.php');
   ?>
 </head>
@@ -50,10 +50,33 @@
           <div class="col-md-12">
             <div class="card">
               <div class="card-header">
-                <h3 class="card-title">
-                    <a href="/maquinasDispensadoras/nuevaMaquinaDispensadora" type="button" class="btn btn-block btn-success">Nueva Máquina</a>
-                </h3>
-                </div>
+    <div class="row align-items-center">
+
+        <div class="col-auto">
+            <a href="/maquinasDispensadoras/nuevaMaquinaDispensadora" 
+               class="btn btn-success">
+                Nueva Máquina
+            </a>
+        </div>
+
+        <div class="col-auto">
+            <form method="GET" action="/maquinasDispensadoras/listado" 
+                  class="form-inline">
+                <select name="estado" class="form-control form-control-sm mr-2"
+                        onchange="this.form.submit()">
+                    <option value="">-- Todos los estados --</option>
+                    <?php foreach ($estados as $est): ?>
+                        <option value="<?= $est['id_estado'] ?>"
+                            <?= (isset($_GET['estado']) && $_GET['estado'] == $est['id_estado']) ? 'selected' : '' ?>>
+                            <?= htmlspecialchars($est['nombre']) ?>
+                        </option>
+                    <?php endforeach; ?>
+                </select>
+            </form>
+        </div>
+
+    </div>
+</div>
               <!-- /.card-header -->
               <div class="card-body">
                 <table class="table table-bordered">
@@ -66,92 +89,48 @@
                       <th>Acciones</th>
                     </tr>
                   </thead>
-                  <tbody>
-                    <?php
-                    /*if (mysqli_num_rows($consultaMaquinas) != 0) {
-                      $rsMaquinas = mysqli_fetch_array($consultaMaquinas, MYSQLI_ASSOC);
-
-                      while($rsMaquinas!=NULL){
-                        ?>
+                    <tbody>
+                    <?php if (count($listadoMaquinas) > 0): ?>
+                        <?php foreach ($listadoMaquinas as $maquina): ?>
                         <tr>
-                          <td><?=$rsMaquinas['numeroSerie']?></td>
-                          <td><?=$rsMaquinas['numeroPrecinto']?></td>
-                          <td><?=$rsMaquinas['tipoDisp']?></td>
-                          <td><span class="badge badge-warning"><?=$rsMaquinas['estadoDisp']?></span></td>
-                          <td>
-                            <i class="fas fa-minus-square fa-lg " style="color: #dc3545;"></i>
-                            &nbsp;
-                            <a href="/maquinasDispensadoras/modificarMaquinaDispensadora/1">
-                              <i class="fas fa-pen-square fa-lg" style="color: #ffc107;"></i>
-                            </a>
-                          </td>
+                            <td><?= htmlspecialchars($maquina['numero_serie']) ?></td>
+                            <td><?= htmlspecialchars($maquina['numero_precinto'] ?? '-') ?></td>
+                            <td><?= htmlspecialchars($maquina['marca'] ?? '-') ?></td>
+                            <td>
+                                <?php
+                                // Asignamos color del badge según el estado
+                                $badges = [
+                                    'disponible'    => 'success',
+                                    'en_cliente'    => 'info',
+                                    'en_reparacion' => 'warning',
+                                    'baja'          => 'danger',
+                                ];
+                                $color = $badges[$maquina['estado']] ?? 'secondary';
+                                ?>
+                                <span class="badge badge-<?= $color ?>">
+                                    <?= htmlspecialchars($maquina['estado']) ?>
+                                </span>
+                            </td>
+                            <td>
+                                <a href="/maquinasDispensadoras/modificarMaquinaDispensadora/<?= $maquina['id_maquina'] ?>">
+                                    <i class="fas fa-pen-square fa-lg" style="color: #ffc107;" title="Modificar"></i>
+                                </a>
+                                &nbsp;
+                                  <a href="#" 
+                                    class="btn-baja"
+                                    data-id="<?= $maquina['id_maquina'] ?>"
+                                    title="Dar de baja">
+                                      <i class="fas fa-minus-square fa-lg" style="color: #dc3545;"></i>
+                                  </a>  
+                            </td>
                         </tr>
-                        <?php                        
-                        }
-                      ?>
-
-                      <?php
-                    }else{
-                      ?>
-                      <tr>
-                        <td>No se encontraron resultados</td>
-                      </tr
-                      <?php
-                    }*/
-                    ?>
-                   <tr>
-                      <td>R125899</td>
-                      <td>356</td>
-                      <td>Electrónica</td>
-                      <td><span class="badge badge-warning">En reparación</span></td>
-                      <td>
-                        <i class="fas fa-minus-square fa-lg " style="color: #dc3545;"></i>
-                        &nbsp;
-                        <a href="/maquinasDispensadoras/modificarMaquinaDispensadora/1">
-                          <i class="fas fa-pen-square fa-lg" style="color: #ffc107;"></i>
-                        </a>
-                      </td>
-                    </tr>
-                    <tr>
-                      <td>Q8569455</td>
-                      <td>200</td>
-                      <td>Manual</td>
-                      <td><span class="badge badge-success">En domicilio</span></td>
-                      <td>
-                        <i class="fas fa-minus-square fa-lg " style="color: #dc3545;"></i>
-                        &nbsp;
-                        <a href="/maquinasDispensadoras/modificarMaquinaDispensadora/1">
-                          <i class="fas fa-pen-square fa-lg" style="color: #ffc107;"></i>
-                        </a>
-                      </td>
-                    </tr>
-                    <tr>
-                      <td>R8996555</td>
-                      <td>450</td>
-                      <td>Electr&oacute;nica Digital</td>
-                      <td><span class="badge badge-danger">Baja</span></td>
-                      <td>
-                        <i class="fas fa-minus-square fa-lg " style="color: #dc3545;"></i>
-                        &nbsp;
-                        <a href="/maquinasDispensadoras/modificarMaquinaDispensadora/1">
-                          <i class="fas fa-pen-square fa-lg" style="color: #ffc107;"></i>
-                        </a>
-                      </td>
-                    </tr>
-                    <tr>
-                      <td>E89152555</td>
-                      <td>145</td>
-                      <td>Electr&oacute;nica Digital</td>
-                      <td><span class="badge badge-info">En planta</span></td>
-                      <td>
-                      <i class="fas fa-minus-square fa-lg " style="color: #dc3545;"></i>
-                        &nbsp;
-                        <a href="/maquinasDispensadoras/modificarMaquinaDispensadora/1">
-                          <i class="fas fa-pen-square fa-lg" style="color: #ffc107;"></i>
-                        </a>
-                      </td>
-                    </tr>
-                  </tbody>
+                        <?php endforeach; ?>
+                    <?php else: ?>
+                        <tr>
+                            <td colspan="5" class="text-center">No se encontraron máquinas registradas.</td>
+                        </tr>
+                    <?php endif; ?>
+                    </tbody>
                 </table>
               </div>
               <!-- /.card-body -->
@@ -189,6 +168,16 @@
 <?php 
   require($_SERVER["DOCUMENT_ROOT"].'/VISTA/script/scriptGeneral.php');
 ?>
-
+<script>
+document.querySelectorAll('.btn-baja').forEach(function(btn) {
+    btn.addEventListener('click', function(e) {
+        e.preventDefault();
+        var id = this.getAttribute('data-id');
+        if (confirm('¿Confirmás la baja de esta máquina?')) {
+            window.location.href = '/maquinasDispensadoras/bajaMaquina/' + id;
+        }
+    });
+});
+</script>
 </body>
 </html>

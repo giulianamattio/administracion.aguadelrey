@@ -1,3 +1,10 @@
+<?php
+// 1. Primero procesar el login si hay POST — antes de cualquier verificación de sesión
+require_once($_SERVER["DOCUMENT_ROOT"].'/CONTROLADOR/login/login.php');
+
+// 2. Recién ahora inicializar (verifica sesión, redirige si no hay)
+require_once($_SERVER["DOCUMENT_ROOT"].'/configuraciones/inicializacion.php');
+?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -7,7 +14,6 @@
 
   <link rel="Agua del rey" href="/favicon.ico">
   <?php 
-  require($_SERVER["DOCUMENT_ROOT"].'/configuraciones/inicializacion.php');
   require($_SERVER["DOCUMENT_ROOT"].'/VISTA/css/cssGeneral.php');
   require($_SERVER["DOCUMENT_ROOT"].'/CONTROLADOR/login/login.php');
   ?>
@@ -26,7 +32,6 @@
   <?php 
   require($_SERVER["DOCUMENT_ROOT"].'/VISTA/encabezado.php');
   require($_SERVER["DOCUMENT_ROOT"].'/VISTA/menu.php');
-
   ?>
 
   <?php

@@ -1,15 +1,20 @@
 <?php
-session_start();
+// ============================================================
+//  configuraciones/inicializacion.php
+// ============================================================
+ob_start();
+
+require_once($_SERVER['DOCUMENT_ROOT'] . '/configuraciones/session.php');
+
 error_reporting(E_ALL);
 
-require($_SERVER['DOCUMENT_ROOT']."/configuraciones/conexionBD.php");
+require_once($_SERVER['DOCUMENT_ROOT'] . '/configuraciones/conexionBD.php');
 
-require($_SERVER['DOCUMENT_ROOT'].'/configuraciones/safemysql.class.php');
+// Protección de rutas
+$rutaActual = $_SERVER['REQUEST_URI'];
+$esLogin = ($rutaActual === '/' || strpos($rutaActual, '/index') !== false);
 
-$conf = array(
-    'user'    => 'root',
-    'pass'    => 'admin',
-    'db'      => 'aguadelrey.local',
-    'charset' => 'latin1');
-$safesql = new SafeMySQL($conf); // with some of the default settings overwritten
-?>
+if (!isset($_SESSION['id_empleado']) && !$esLogin) {
+    header('Location: /index');
+    exit;
+}
