@@ -44,7 +44,11 @@ RewriteRule ^index/([a-zA-Z0-9_-]+)$ /index.php?error=$1 [L,NC]
 ErrorDocument 404 /principal.php
 
 #CLIENTES
-RewriteRule ^clientes/listaDeEspera$ /VISTA/clientes/listaDeEspera.php [L,NC]
+RewriteRule ^clientes/registro$           /VISTA/clientes/registroCliente.php [L,NC]
+RewriteRule ^clientes/procesarRegistro$   /CONTROLADOR/clientes/procesarRegistro.php [L,NC]
+RewriteRule ^clientes/listaDeEspera$      /VISTA/clientes/listaDeEspera.php [L,NC]
+RewriteRule ^clientes/aprobarCliente$     /CONTROLADOR/clientes/aprobarCliente.php [L,NC]
+RewriteRule ^clientes/rechazarCliente$    /CONTROLADOR/clientes/rechazarCliente.php [L,NC]
 
 #PEDIDOS  
 RewriteRule ^pedidos/reporte$ /VISTA/pedidos/reportes.php [L,NC]
