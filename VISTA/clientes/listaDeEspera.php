@@ -1,5 +1,6 @@
 <?php require_once($_SERVER["DOCUMENT_ROOT"].'/configuraciones/inicializacion.php'); ?>
 <?php require_once($_SERVER["DOCUMENT_ROOT"].'/CONTROLADOR/clientes/listaEspera.php'); ?>
+<?php require_once($_SERVER['DOCUMENT_ROOT'] . '/configuraciones/conexionBD.php');
 <!DOCTYPE html>
 <html lang="es">
 <head>
