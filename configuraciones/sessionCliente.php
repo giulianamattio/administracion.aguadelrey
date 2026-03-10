@@ -1,8 +1,6 @@
 <?php
 // ============================================================
 //  configuraciones/sessionCliente.php
-//  Verifica que el cliente esté logueado.
-//  Incluir al inicio de cada página del portal de clientes.
 // ============================================================
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
