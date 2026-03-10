@@ -53,6 +53,10 @@ RewriteRule ^clientes/login$           /VISTA/clientes/portal/login.php [L,NC]
 RewriteRule ^clientes/procesarLogin$   /CONTROLADOR/clientes/procesarLogin.php [L,NC]
 RewriteRule ^clientes/logout$          /CONTROLADOR/clientes/logout.php [L,NC]
 RewriteRule ^clientes/home$            /VISTA/clientes/portal/home.php [L,NC]
+RewriteRule ^clientes/perfil$           /VISTA/clientes/portal/perfil.php [L,NC]
+RewriteRule ^clientes/guardarPerfil$    /CONTROLADOR/clientes/guardarPerfil.php [L,NC]
+RewriteRule ^clientes/cambiarPassword$  /VISTA/clientes/portal/cambiarPassword.php [L,NC]
+RewriteRule ^clientes/guardarPassword$  /CONTROLADOR/clientes/guardarPassword.php [L,NC]
 
 #PEDIDOS  
 RewriteRule ^pedidos/reporte$ /VISTA/pedidos/reportes.php [L,NC]
