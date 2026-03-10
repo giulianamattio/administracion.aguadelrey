@@ -1,4 +1,3 @@
-<!DOCTYPE html>
 <?php
 // ============================================================
 //  VISTA/clientes/portal/home.php
@@ -6,6 +5,7 @@
 // ============================================================
 require_once($_SERVER['DOCUMENT_ROOT'] . '/configuraciones/sessionCliente.php');
 ?>
+<!DOCTYPE html>
 <html lang="es">
 <head>
   <?php require($_SERVER['DOCUMENT_ROOT'] . '/VISTA/clientes/portal/layout/head.php'); ?>
