@@ -7,7 +7,6 @@
 require_once($_SERVER['DOCUMENT_ROOT'] . '/configuraciones/conexionBD.php');
 
 // Si ya tiene sesión activa de cliente, redirigir al home
-session_start();
 if (!empty($_SESSION['cliente_id'])) {
     header('Location: /clientes/home');
     exit;
