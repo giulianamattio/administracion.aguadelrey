@@ -31,7 +31,7 @@ $pedidosPendientes = $stmtPedidos->fetchAll();
 $stmtRep = $conexionbd->prepare("
     SELECT id_empleado, nombre, apellido
     FROM usuario_empleado
-    WHERE activo = TRUE OR baja_fecha IS NULL
+    WHERE activo = TRUE
     ORDER BY apellido ASC
 ");
 $stmtRep->execute();
