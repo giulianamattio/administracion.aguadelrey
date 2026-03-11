@@ -66,6 +66,11 @@ RewriteRule ^pedidos/nuevaRutaReparto$ /VISTA/pedidos/nuevaRutaReparto.php [L,NC
 RewriteRule ^pedidos/nuevoPedido$ /VISTA/pedidos/nuevoPedido.php [L,NC]
 RewriteRule ^pedidos/modificarPedido/([a-zA-Z0-9_-]+)$ /VISTA/pedidos/modificarPedido.php?idPedido=$1 [L,NC]
 RewriteRule ^pedidos/listado$ /VISTA/pedidos/listadoPedidos.php [L,NC]
+RewriteRule ^pedidos/gestionarRutaRepartos$      /VISTA/pedidos/gestionarRutaRepartos.php [L,NC]
+RewriteRule ^pedidos/nuevaRutaReparto$           /VISTA/pedidos/nuevaRutaReparto.php [L,NC]
+RewriteRule ^pedidos/guardarNuevaRuta$           /CONTROLADOR/pedidos/guardarNuevaRuta.php [L,NC]
+RewriteRule ^pedidos/paradasRuta$                /CONTROLADOR/pedidos/paradasRuta.php [L,NC]
+RewriteRule ^pedidos/eliminarRuta$               /CONTROLADOR/pedidos/eliminarRuta.php [L,NC]
 
 #COBROS
 RewriteRule ^cobros/nuevoCobro$ /VISTA/cobros/nuevoCobro.php [L,NC]

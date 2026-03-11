@@ -1,239 +1,246 @@
+<?php
+// ============================================================
+//  VISTA/pedidos/nuevaRutaReparto.php
+// ============================================================
+require_once($_SERVER['DOCUMENT_ROOT'] . '/configuraciones/inicializacion.php');
+require_once($_SERVER['DOCUMENT_ROOT'] . '/CONTROLADOR/pedidos/datosNuevaRuta.php');
+?>
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <?php
-  $pagina = 'Nueva ruta de reparto';
-  ?>
-  <title>Agua del Rey | <?php echo $pagina; ?></title>
-
-  <link rel="Agua del rey" href="/favicon.ico">
-  <?php 
-  require($_SERVER["DOCUMENT_ROOT"].'/configuraciones/inicializacion.php');
-  require($_SERVER["DOCUMENT_ROOT"].'/VISTA/css/cssGeneral.php');
-  ?>
-
-<style type="text/css">
-tr.selected{
-  width: 100%;
-}
-tr.selected td{
-    background-color: #007bff;
-    color: #fff;
-}
-</style>
-
+  <?php $pagina = 'Nueva ruta de reparto'; ?>
+  <title>Agua del Rey | <?= $pagina ?></title>
+  <link rel="icon" href="/favicon.ico">
+  <?php require($_SERVER["DOCUMENT_ROOT"].'/VISTA/css/cssGeneral.php'); ?>
 </head>
 
 <body class="hold-transition sidebar-mini layout-fixed">
 <div class="wrapper">
-
-  <?php 
+  <?php
   require($_SERVER["DOCUMENT_ROOT"].'/VISTA/encabezado.php');
   require($_SERVER["DOCUMENT_ROOT"].'/VISTA/menu.php');
-
   ?>
-  
-  <!-- Content Wrapper. Contains page content -->
+
   <div class="content-wrapper">
-    <!-- Content Header (Page header) -->
     <section class="content-header">
       <div class="container-fluid">
         <div class="row mb-2">
-          <div class="col-sm-6">
-            <h1><?=$pagina?></h1>
-          </div>
+          <div class="col-sm-6"><h1><?= $pagina ?></h1></div>
           <div class="col-sm-6">
             <ol class="breadcrumb float-sm-right">
-              <li class="breadcrumb-item"><a href="#">Pedidos</a></li>
-              <li class="breadcrumb-item active"><?=$pagina?></li>
+              <li class="breadcrumb-item"><a href="/pedidos/gestionarRutaRepartos">Pedidos</a></li>
+              <li class="breadcrumb-item active"><?= $pagina ?></li>
             </ol>
           </div>
         </div>
-      </div><!-- /.container-fluid -->
+      </div>
     </section>
 
-      <!-- Main content -->
-      <section class="content">
+    <section class="content">
       <div class="container-fluid">
         <div class="row">
-          <!-- left column -->
           <div class="col-md-12">
-            <!-- general form elements -->
             <div class="card card-primary">
-              <!--<div class="card-header">
-                <h3 class="card-title">Quick Example</h3>
-              </div>-->
-              <!-- /.card-header -->
-              <!-- form start -->
-              <form>
-                <div class="card-body">
-                    
-                <div class="row">
-                    <div class="col-sm-4">
+              <div class="card-body">
+
+                <?php if (isset($_GET['error'])): ?>
+                  <div class="alert alert-danger">
+                    <i class="fas fa-exclamation-triangle mr-1"></i>
+                    <?= htmlspecialchars($_GET['error']) ?>
+                  </div>
+                <?php endif; ?>
+
+                <form action="/pedidos/guardarNuevaRuta" method="POST" id="formNuevaRuta">
+
+                  <div class="row">
+                    <div class="col-sm-3">
                       <div class="form-group">
-                        <label for="fecha">Fecha</label>
-                        <input type="date" id="fecha" name="fecha" class="form-control form-control-sm" placeholder="Enter email">  
+                        <label>Fecha <span class="text-danger">*</span></label>
+                        <input type="date" name="fecha" class="form-control form-control-sm"
+                               min="<?= date('Y-m-d') ?>"
+                               value="<?= date('Y-m-d') ?>" required>
+                      </div>
+                    </div>
+                    <div class="col-sm-3">
+                      <div class="form-group">
+                        <label>Turno <span class="text-danger">*</span></label>
+                        <select name="turno" class="form-control form-control-sm" required>
+                          <option value="mañana">Mañana</option>
+                          <option value="tarde">Tarde</option>
+                        </select>
                       </div>
                     </div>
                     <div class="col-sm-4">
                       <div class="form-group">
-                        <label for="turno">Turno</label>
-                        <select class="form-control form-control-sm" id="turno">
-                          <option value="turnoManiana" selected>Mañana</option>
-                          <option value="turnoTarde">Tarde</option>
+                        <label>Repartidor</label>
+                        <select name="id_repartidor" class="form-control form-control-sm">
+                          <option value="">-- Sin asignar --</option>
+                          <?php foreach ($repartidores as $rep): ?>
+                            <option value="<?= $rep['id_empleado'] ?>">
+                              <?= htmlspecialchars($rep['nombre'] . ' ' . $rep['apellido']) ?>
+                            </option>
+                          <?php endforeach; ?>
                         </select>
                       </div>
                     </div>
                   </div>
 
-
-
-                <div class="card-header"></div> <br/>
-                
-                <label for="pedidos">Seleccione las visitas</label>
-                <div class="card-body">
-                    <div class="row">
-                        <div class="col-sm-6">
-                            <!-- checkbox -->
-                            <div class="form-group clearfix">
-                                <input type="checkbox" id="pedido1" checked>
-                                <label for="pedido1" style="font-weight:normal;"> Pedido #12 - María Gómez - 25 de Mayo 258</label>
-                            </div>
-                        </div>
-                        <div class="col-sm-6">
-                            <!-- checkbox -->
-                            <div class="form-group clearfix">
-                                <input type="checkbox" id="pedido2" checked>
-                                <label for="pedido2" style="font-weight:normal;"> Cobro #10 - Ricardo Cabrera - Av. Garibaldi 854</label>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="row">
-                        <div class="col-sm-6">
-                            <!-- checkbox -->
-                            <div class="form-group clearfix">
-                                <input type="checkbox" id="pedido3" checked>
-                                <label for="pedido3" style="font-weight:normal;"> Pedido #15 - Eduardo García - Avellaneda 2545</label>
-                            </div>
-                        </div>
-                        <div class="col-sm-6">
-                            <!-- checkbox -->
-                            <div class="form-group clearfix">
-                                <input type="checkbox" id="pedido4" checked>
-                                <label for="pedido4" style="font-weight:normal;"> Pedido #16 - Juan Perez - 9 de Julio 855</label>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="col-sm-6">
-                            <!-- checkbox -->
-                            <div class="form-group clearfix">
-                                <input type="checkbox" id="pedido5" checked>
-                                <label for="pedido5" style="font-weight:normal;"> Pedido #18 - Maria - Mitre 524</label>
-                            </div>
-                        </div>
-                        <div class="col-sm-6">
-                            <!-- checkbox -->
-                            <div class="form-group clearfix">
-                                <input type="checkbox" id="pedido6" checked>
-                                <label for="pedido6" style="font-weight:normal;"> Cobro #89 - Carla - Mexico 2589</label>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-
-                <div class="row">
-                    <div class="col-sm-4"><label>Cantidad total de Bidones:</label>&nbsp;&nbsp;<span >8</span></div>
-                </div>
-
-                <div class="row">
-                    <div class="col-sm-8">
-                        <button id="btnCalcularRepartos" type="button" class="btn btn-primary" onclick="calcularRutaRepartos()">
-                            <span id="divLoad" class="spinner-border spinner-border-sm" role="status" aria-hidden="true" style="display:none;">&nbsp;</span>
-                            Calcular Ruta
-                        </button>
-                        
-                    </div>
-                </div>
-
-                <br />
-                
-                <div class="row">
-                  <div class="col-sm-8">
-                    <table id="tblPedidos" class="table table-bordered" style="display: none;">
-                      <tr>
-                          <th>Posición</th>
-                          <th>Cliente</th>
-                          <th>Domicilio</th>
-                      </tr>
-                      <tr>
-                          <td>1</td>
-                          <td>Carla</td>
-                          <td>Mexico 2589</td>
-                      </tr>
-                      <tr>
-                          <td>2</td>
-                          <td>Maria</td>
-                          <td>Mitre 524</td>
-                      </tr>
-                      <tr>
-                          <td>3</td>
-                          <td>Juan</td>
-                          <td>25 de Mayo 258</td>
-                      </tr>
-                      <tr>
-                          <td>4</td>
-                          <td>Carlos</td>
-                          <td>Av. Garibaldi 854</td>
-                      </tr>
-                      <tr>
-                          <td>5</td>
-                          <td>Mariela</td>
-                          <td>Avellaneda 2545</td>
-                      </tr>
-                    </table>
+                  <div class="form-group">
+                    <label>Observaciones</label>
+                    <input type="text" name="observaciones" class="form-control form-control-sm"
+                           placeholder="Notas generales de la ruta...">
                   </div>
-                </div>
 
-                <div class="card-header"></div> <br/>
+                  <hr>
+                  <label>Seleccioná los pedidos a incluir</label>
 
-
-                <div class="row align-items-center h-100 justify-content-center">
-                    <div class="col-auto">
-                        <button type="button" class="btn btn-default" onclick="javascript:volverAlListadoRutas()">Cancelar</button>
-                        <button type="submit" class="btn btn-success ">Guardar</button>
+                  <?php if (count($pedidosPendientes) === 0): ?>
+                    <div class="alert alert-info">
+                      <i class="fas fa-info-circle mr-1"></i>
+                      No hay pedidos pendientes sin ruta asignada.
                     </div>
-                </div>
+                  <?php else: ?>
+                    <div class="row" id="listaPedidos">
+                      <?php foreach ($pedidosPendientes as $p): ?>
+                        <div class="col-sm-6">
+                          <div class="form-group clearfix">
+                            <input type="checkbox"
+                                   name="pedidos[]"
+                                   value="<?= $p['id_pedido'] ?>"
+                                   class="chk-pedido"
+                                   id="p<?= $p['id_pedido'] ?>">
+                            <label for="p<?= $p['id_pedido'] ?>" style="font-weight:normal; margin-left:6px;">
+                              <strong>#<?= $p['id_pedido'] ?></strong>
+                              — <?= htmlspecialchars($p['nombre'] . ' ' . $p['apellido']) ?>
+                              — <?= htmlspecialchars($p['domicilio'] ?? 'Sin domicilio') ?>
+                              <?php if ($p['observaciones_cliente']): ?>
+                                <br><small class="text-muted ml-4"><?= htmlspecialchars($p['observaciones_cliente']) ?></small>
+                              <?php endif; ?>
+                            </label>
+                          </div>
+                        </div>
+                      <?php endforeach; ?>
+                    </div>
 
-              </form>
+                    <div class="row mb-3">
+                      <div class="col-sm-6">
+                        <span class="text-muted">Pedidos seleccionados: </span>
+                        <strong id="contadorSeleccionados">0</strong>
+                      </div>
+                    </div>
+
+                    <div class="row mb-3">
+                      <div class="col-sm-8">
+                        <button type="button" id="btnCalcular" class="btn btn-primary" disabled>
+                          <i class="fas fa-route mr-1"></i> Calcular Ruta Óptima
+                        </button>
+                      </div>
+                    </div>
+
+                    <!-- Tabla resultado del cálculo -->
+                    <div id="resultadoRuta" style="display:none;">
+                      <hr>
+                      <h6><i class="fas fa-sort-numeric-down mr-1 text-success"></i>
+                        Orden sugerido (ordenado por numeración de calle):
+                      </h6>
+                      <table class="table table-bordered table-sm" style="max-width:600px;">
+                        <thead class="thead-light">
+                          <tr>
+                            <th>Posición</th>
+                            <th>Cliente</th>
+                            <th>Domicilio</th>
+                          </tr>
+                        </thead>
+                        <tbody id="tbodyRuta"></tbody>
+                      </table>
+                      <small class="text-muted">
+                        <i class="fas fa-info-circle mr-1"></i>
+                        El orden se calcula automáticamente por número de calle.
+                        Podés modificarlo manualmente desde la opción "Editar ruta" luego de guardar.
+                      </small>
+                    </div>
+
+                  <?php endif; ?>
+
+                  <div class="card-header mt-3"></div>
+                  <div class="row align-items-center mt-3">
+                    <div class="col-auto">
+                      <a href="/pedidos/gestionarRutaRepartos" class="btn btn-default">Cancelar</a>
+                      <button type="submit" class="btn btn-success ml-2"
+                              <?= count($pedidosPendientes) === 0 ? 'disabled' : '' ?>>
+                        <i class="fas fa-save mr-1"></i> Guardar
+                      </button>
+                    </div>
+                  </div>
+
+                </form>
+              </div>
             </div>
-            <!-- /.card -->
-
           </div>
         </div>
       </div>
-      </section>
-
+    </section>
   </div>
-  
-  
-  
-  <?php 
-    require($_SERVER["DOCUMENT_ROOT"].'/VISTA/footer.php');
-  ?>
-    
 
+  <?php require($_SERVER["DOCUMENT_ROOT"].'/VISTA/footer.php'); ?>
 </div>
-<!-- ./wrapper -->
 
-<?php 
-  require($_SERVER["DOCUMENT_ROOT"].'/VISTA/script/scriptGeneral.php');
-?>
+<?php require($_SERVER["DOCUMENT_ROOT"].'/VISTA/script/scriptGeneral.php'); ?>
 
+<script>
+// Datos de pedidos para el cálculo en JS
+const pedidosData = <?= json_encode(array_map(function($p) {
+    return [
+        'id'        => $p['id_pedido'],
+        'nombre'    => $p['nombre'] . ' ' . $p['apellido'],
+        'domicilio' => $p['domicilio'] ?? 'Sin domicilio',
+    ];
+}, $pedidosPendientes)) ?>;
 
+// Contador de seleccionados
+document.querySelectorAll('.chk-pedido').forEach(function(chk) {
+    chk.addEventListener('change', actualizarContador);
+});
+
+function actualizarContador() {
+    const seleccionados = document.querySelectorAll('.chk-pedido:checked').length;
+    document.getElementById('contadorSeleccionados').textContent = seleccionados;
+    document.getElementById('btnCalcular').disabled = seleccionados === 0;
+    // Ocultar resultado anterior si cambia selección
+    document.getElementById('resultadoRuta').style.display = 'none';
+}
+
+// Calcular ruta óptima en el cliente (JS)
+document.getElementById('btnCalcular').addEventListener('click', function() {
+    const idsSeleccionados = Array.from(
+        document.querySelectorAll('.chk-pedido:checked')
+    ).map(c => parseInt(c.value));
+
+    const seleccionados = pedidosData.filter(p => idsSeleccionados.includes(p.id));
+
+    // Algoritmo: extraer número de calle y ordenar ascendente
+    function extraerNumero(dom) {
+        const match = dom.match(/\d+/);
+        return match ? parseInt(match[0]) : 9999;
+    }
+
+    seleccionados.sort((a, b) => extraerNumero(a.domicilio) - extraerNumero(b.domicilio));
+
+    // Mostrar tabla resultado
+    const tbody = document.getElementById('tbodyRuta');
+    tbody.innerHTML = '';
+    seleccionados.forEach(function(p, i) {
+        tbody.innerHTML += `<tr>
+            <td>${i + 1}</td>
+            <td>${p.nombre}</td>
+            <td>${p.domicilio}</td>
+        </tr>`;
+    });
+
+    document.getElementById('resultadoRuta').style.display = 'block';
+});
+</script>
 </body>
 </html>
