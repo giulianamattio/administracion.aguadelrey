@@ -90,6 +90,10 @@ RewriteRule ^maquinasDispensadoras/modificarMaquinaDispensadora/([a-zA-Z0-9_-]+)
 RewriteRule ^maquinasDispensadoras/listado$ /VISTA/maquinasDispensadoras/listadoMaquinas.php [L,NC]
 RewriteRule ^maquinasDispensadoras/reportes$ /VISTA/maquinasDispensadoras/reportes.php [L,NC]
 
+#RUTAS
+RewriteRule ^clientes/geocodificarTodos$    /CONTROLADOR/clientes/geocodificarTodos.php [L,NC]
+RewriteRule ^clientes/geocodificarCliente$  /CONTROLADOR/clientes/geocodificarCliente.php [L,NC]
+
 #SINCRONIZACION
 RewriteRule ^sincronizacion$ /VISTA/sincronizacion.php [L,NC]
 
