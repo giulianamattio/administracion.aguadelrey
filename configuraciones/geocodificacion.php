@@ -30,21 +30,20 @@ class Geocodificacion {
                . "&limit=1"
                . "&countrycodes=ar";
 
-        $opts = [
-            'http' => [
-                'method' => 'GET',
-                'header' => [
-                    // Nominatim requiere un User-Agent identificatorio
-                    'User-Agent: AguaDelReyMVP/1.0 (proyecto-academico-utn@example.com)'
-                ],
-                'timeout' => 5,
-            ]
-        ];
+        $ch = curl_init();
+        curl_setopt_array($ch, [
+            CURLOPT_URL            => $url,
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_TIMEOUT        => 10,
+            CURLOPT_USERAGENT      => 'AguaDelReyMVP/1.0 (proyecto-academico-utn@example.com)',
+            CURLOPT_SSL_VERIFYPEER => false,
+        ]);
 
-        $context  = stream_context_create($opts);
-        $response = @file_get_contents($url, false, $context);
+        $response = curl_exec($ch);
+        $error    = curl_error($ch);
+        curl_close($ch);
 
-        if ($response === false) return null;
+        if ($response === false || !empty($error)) return null;
 
         $data = json_decode($response, true);
         if (empty($data)) return null;
@@ -113,3 +112,4 @@ class Geocodificacion {
         return $ordenados;
     }
 }
+
