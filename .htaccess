@@ -91,8 +91,9 @@ RewriteRule ^maquinasDispensadoras/listado$ /VISTA/maquinasDispensadoras/listado
 RewriteRule ^maquinasDispensadoras/reportes$ /VISTA/maquinasDispensadoras/reportes.php [L,NC]
 
 #RUTAS
-RewriteRule ^clientes/geocodificarTodos$    /CONTROLADOR/clientes/geocodificarTodos.php [L,NC]
 RewriteRule ^clientes/geocodificarCliente$  /CONTROLADOR/clientes/geocodificarCliente.php [L,NC]
+RewriteRule ^clientes/geocodificarTodos$    /CONTROLADOR/clientes/geocodificarTodos.php [L,NC]
+RewriteRule ^clientes/guardarCoordenadas$   /CONTROLADOR/clientes/guardarCoordenadas.php [L,NC]
 
 #SINCRONIZACION
 RewriteRule ^sincronizacion$ /VISTA/sincronizacion.php [L,NC]
