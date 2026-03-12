@@ -94,6 +94,8 @@ RewriteRule ^maquinasDispensadoras/reportes$ /VISTA/maquinasDispensadoras/report
 RewriteRule ^clientes/geocodificarCliente$  /CONTROLADOR/clientes/geocodificarCliente.php [L,NC]
 RewriteRule ^clientes/geocodificarTodos$    /CONTROLADOR/clientes/geocodificarTodos.php [L,NC]
 RewriteRule ^clientes/guardarCoordenadas$   /CONTROLADOR/clientes/guardarCoordenadas.php [L,NC]
+RewriteRule ^pedidos/modificarRutaReparto/([0-9]+)$ /VISTA/pedidos/modificarRutaReparto.php?idRutaReparto=$1 [L,NC]
+RewriteRule ^pedidos/guardarModificacionRuta$        /CONTROLADOR/pedidos/guardarModificacionRuta.php [L,NC]
 
 #SINCRONIZACION
 RewriteRule ^sincronizacion$ /VISTA/sincronizacion.php [L,NC]
