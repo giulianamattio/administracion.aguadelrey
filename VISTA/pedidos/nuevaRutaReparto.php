@@ -1,6 +1,6 @@
 <?php
 // ============================================================
-//  VISTA/pedidos/nuevaRutaReparto.php
+//  VISTA/pedidos/nuevaRutaReparto.php  (versión con geocodificación)
 // ============================================================
 require_once($_SERVER['DOCUMENT_ROOT'] . '/configuraciones/inicializacion.php');
 require_once($_SERVER['DOCUMENT_ROOT'] . '/CONTROLADOR/pedidos/datosNuevaRuta.php');
@@ -51,6 +51,23 @@ require_once($_SERVER['DOCUMENT_ROOT'] . '/CONTROLADOR/pedidos/datosNuevaRuta.ph
                     <?= htmlspecialchars($_GET['error']) ?>
                   </div>
                 <?php endif; ?>
+
+                <?php if ($sinCoordenadas > 0): ?>
+                  <div class="alert alert-warning">
+                    <i class="fas fa-map-marker-alt mr-1"></i>
+                    <strong><?= $sinCoordenadas ?> pedido(s)</strong> no tienen coordenadas geocodificadas.
+                    El cálculo óptimo usará solo los que sí las tienen.
+                    <a href="/clientes/geocodificarTodos" class="btn btn-sm btn-warning ml-2" target="_blank">
+                      Geocodificar ahora
+                    </a>
+                  </div>
+                <?php endif; ?>
+
+                <div class="alert alert-light border">
+                  <i class="fas fa-warehouse mr-1 text-primary"></i>
+                  <strong>Punto de partida:</strong> <?= htmlspecialchars($galpon['dir']) ?>
+                  <span class="text-muted ml-2">(<?= $galpon['lat'] ?>, <?= $galpon['lng'] ?>)</span>
+                </div>
 
                 <form action="/pedidos/guardarNuevaRuta" method="POST" id="formNuevaRuta">
 
@@ -110,11 +127,21 @@ require_once($_SERVER['DOCUMENT_ROOT'] . '/CONTROLADOR/pedidos/datosNuevaRuta.ph
                                    name="pedidos[]"
                                    value="<?= $p['id_pedido'] ?>"
                                    class="chk-pedido"
-                                   id="p<?= $p['id_pedido'] ?>">
+                                   id="p<?= $p['id_pedido'] ?>"
+                                   data-lat="<?= $p['latitud'] ?? '' ?>"
+                                   data-lng="<?= $p['longitud'] ?? '' ?>"
+                                   data-nombre="<?= htmlspecialchars($p['nombre'] . ' ' . $p['apellido']) ?>"
+                                   data-domicilio="<?= htmlspecialchars($p['domicilio'] ?? 'Sin domicilio') ?>"
+                                   data-id="<?= $p['id_pedido'] ?>">
                             <label for="p<?= $p['id_pedido'] ?>" style="font-weight:normal; margin-left:6px;">
                               <strong>#<?= $p['id_pedido'] ?></strong>
                               — <?= htmlspecialchars($p['nombre'] . ' ' . $p['apellido']) ?>
                               — <?= htmlspecialchars($p['domicilio'] ?? 'Sin domicilio') ?>
+                              <?php if ($p['latitud']): ?>
+                                <i class="fas fa-map-marker-alt text-success ml-1" title="Coordenadas disponibles"></i>
+                              <?php else: ?>
+                                <i class="fas fa-map-marker-alt text-danger ml-1" title="Sin coordenadas"></i>
+                              <?php endif; ?>
                               <?php if ($p['observaciones_cliente']): ?>
                                 <br><small class="text-muted ml-4"><?= htmlspecialchars($p['observaciones_cliente']) ?></small>
                               <?php endif; ?>
@@ -125,9 +152,11 @@ require_once($_SERVER['DOCUMENT_ROOT'] . '/CONTROLADOR/pedidos/datosNuevaRuta.ph
                     </div>
 
                     <div class="row mb-3">
-                      <div class="col-sm-6">
+                      <div class="col-sm-8">
                         <span class="text-muted">Pedidos seleccionados: </span>
                         <strong id="contadorSeleccionados">0</strong>
+                        <span class="text-muted ml-3">Con coordenadas: </span>
+                        <strong id="contadorConCoords" class="text-success">0</strong>
                       </div>
                     </div>
 
@@ -136,29 +165,37 @@ require_once($_SERVER['DOCUMENT_ROOT'] . '/CONTROLADOR/pedidos/datosNuevaRuta.ph
                         <button type="button" id="btnCalcular" class="btn btn-primary" disabled>
                           <i class="fas fa-route mr-1"></i> Calcular Ruta Óptima
                         </button>
+                        <small class="text-muted ml-2">
+                          Algoritmo: vecino más cercano desde el galpón
+                        </small>
                       </div>
                     </div>
 
-                    <!-- Tabla resultado del cálculo -->
+                    <!-- Tabla resultado -->
                     <div id="resultadoRuta" style="display:none;">
                       <hr>
-                      <h6><i class="fas fa-sort-numeric-down mr-1 text-success"></i>
-                        Orden sugerido (ordenado por numeración de calle):
+                      <h6><i class="fas fa-route mr-1 text-success"></i>
+                        Orden óptimo sugerido:
+                        <span id="distanciaTotal" class="badge badge-info ml-2"></span>
                       </h6>
-                      <table class="table table-bordered table-sm" style="max-width:600px;">
+                      <table class="table table-bordered table-sm" style="max-width:700px;">
                         <thead class="thead-light">
                           <tr>
-                            <th>Posición</th>
+                            <th>Pos.</th>
                             <th>Cliente</th>
                             <th>Domicilio</th>
+                            <th>Dist. desde anterior</th>
                           </tr>
                         </thead>
                         <tbody id="tbodyRuta"></tbody>
                       </table>
+                      <div id="alertaSinCoords" class="alert alert-warning d-none">
+                        <i class="fas fa-exclamation-triangle mr-1"></i>
+                        Algunos pedidos no tienen coordenadas y se agregaron al final sin optimizar.
+                      </div>
                       <small class="text-muted">
                         <i class="fas fa-info-circle mr-1"></i>
-                        El orden se calcula automáticamente por número de calle.
-                        Podés modificarlo manualmente desde la opción "Editar ruta" luego de guardar.
+                        Podés modificar el orden manualmente desde "Editar ruta" luego de guardar.
                       </small>
                     </div>
 
@@ -190,57 +227,112 @@ require_once($_SERVER['DOCUMENT_ROOT'] . '/CONTROLADOR/pedidos/datosNuevaRuta.ph
 <?php require($_SERVER["DOCUMENT_ROOT"].'/VISTA/script/scriptGeneral.php'); ?>
 
 <script>
-// Datos de pedidos para el cálculo en JS
-const pedidosData = <?= json_encode(array_map(function($p) {
-    return [
-        'id'        => $p['id_pedido'],
-        'nombre'    => $p['nombre'] . ' ' . $p['apellido'],
-        'domicilio' => $p['domicilio'] ?? 'Sin domicilio',
-    ];
-}, $pedidosPendientes)) ?>;
+// Coordenadas del galpón (punto de partida)
+const GALPON = { lat: <?= $galpon['lat'] ?>, lng: <?= $galpon['lng'] ?> };
 
-// Contador de seleccionados
-document.querySelectorAll('.chk-pedido').forEach(function(chk) {
-    chk.addEventListener('change', actualizarContador);
-});
+// Fórmula Haversine en JS
+function distanciaKm(lat1, lng1, lat2, lng2) {
+    const R = 6371;
+    const dLat = (lat2 - lat1) * Math.PI / 180;
+    const dLng = (lng2 - lng1) * Math.PI / 180;
+    const a = Math.sin(dLat/2) * Math.sin(dLat/2)
+            + Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180)
+            * Math.sin(dLng/2) * Math.sin(dLng/2);
+    return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+}
 
-function actualizarContador() {
-    const seleccionados = document.querySelectorAll('.chk-pedido:checked').length;
-    document.getElementById('contadorSeleccionados').textContent = seleccionados;
-    document.getElementById('btnCalcular').disabled = seleccionados === 0;
-    // Ocultar resultado anterior si cambia selección
+// Algoritmo Nearest Neighbor en JS
+function rutaOptima(origen, destinos) {
+    let pendientes = [...destinos];
+    let ordenados  = [];
+    let actual     = origen;
+
+    while (pendientes.length > 0) {
+        let minDist  = Infinity;
+        let minIndex = 0;
+
+        pendientes.forEach((d, i) => {
+            const dist = distanciaKm(actual.lat, actual.lng, d.lat, d.lng);
+            if (dist < minDist) { minDist = dist; minIndex = i; }
+        });
+
+        const sig = { ...pendientes[minIndex], distancia: minDist };
+        ordenados.push(sig);
+        actual = sig;
+        pendientes.splice(minIndex, 1);
+    }
+    return ordenados;
+}
+
+// Actualizar contadores
+function actualizarContadores() {
+    const checks = document.querySelectorAll('.chk-pedido:checked');
+    const conCoords = Array.from(checks).filter(c => c.dataset.lat && c.dataset.lng).length;
+    document.getElementById('contadorSeleccionados').textContent = checks.length;
+    document.getElementById('contadorConCoords').textContent     = conCoords;
+    document.getElementById('btnCalcular').disabled = checks.length === 0;
     document.getElementById('resultadoRuta').style.display = 'none';
 }
 
-// Calcular ruta óptima en el cliente (JS)
+document.querySelectorAll('.chk-pedido').forEach(c => c.addEventListener('change', actualizarContadores));
+
+// Calcular ruta óptima
 document.getElementById('btnCalcular').addEventListener('click', function() {
-    const idsSeleccionados = Array.from(
-        document.querySelectorAll('.chk-pedido:checked')
-    ).map(c => parseInt(c.value));
+    const checks = Array.from(document.querySelectorAll('.chk-pedido:checked'));
 
-    const seleccionados = pedidosData.filter(p => idsSeleccionados.includes(p.id));
+    const conCoords = checks
+        .filter(c => c.dataset.lat && c.dataset.lng)
+        .map(c => ({
+            id:        c.dataset.id,
+            nombre:    c.dataset.nombre,
+            domicilio: c.dataset.domicilio,
+            lat:       parseFloat(c.dataset.lat),
+            lng:       parseFloat(c.dataset.lng),
+        }));
 
-    // Algoritmo: extraer número de calle y ordenar ascendente
-    function extraerNumero(dom) {
-        const match = dom.match(/\d+/);
-        return match ? parseInt(match[0]) : 9999;
-    }
+    const sinCoords = checks
+        .filter(c => !c.dataset.lat || !c.dataset.lng)
+        .map(c => ({
+            id:        c.dataset.id,
+            nombre:    c.dataset.nombre,
+            domicilio: c.dataset.domicilio,
+            lat:       null,
+            lng:       null,
+            distancia: null,
+        }));
 
-    seleccionados.sort((a, b) => extraerNumero(a.domicilio) - extraerNumero(b.domicilio));
+    // Aplicar algoritmo solo a los que tienen coordenadas
+    const optimizados = conCoords.length > 0
+        ? rutaOptima(GALPON, conCoords)
+        : [];
 
-    // Mostrar tabla resultado
+    // Los sin coordenadas van al final
+    const resultado = [...optimizados, ...sinCoords];
+
+    // Calcular distancia total
+    let totalKm = optimizados.reduce((sum, p) => sum + (p.distancia || 0), 0);
+    document.getElementById('distanciaTotal').textContent =
+        'Distancia estimada: ' + totalKm.toFixed(1) + ' km';
+
+    // Mostrar tabla
     const tbody = document.getElementById('tbodyRuta');
     tbody.innerHTML = '';
-    seleccionados.forEach(function(p, i) {
+    resultado.forEach(function(p, i) {
+        const dist = p.distancia !== null
+            ? p.distancia.toFixed(2) + ' km'
+            : '<span class="text-muted">—</span>';
         tbody.innerHTML += `<tr>
             <td>${i + 1}</td>
             <td>${p.nombre}</td>
             <td>${p.domicilio}</td>
+            <td>${dist}</td>
         </tr>`;
     });
 
+    document.getElementById('alertaSinCoords').classList.toggle('d-none', sinCoords.length === 0);
     document.getElementById('resultadoRuta').style.display = 'block';
 });
 </script>
 </body>
 </html>
+

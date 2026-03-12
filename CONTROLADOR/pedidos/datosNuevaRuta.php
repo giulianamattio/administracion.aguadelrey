@@ -1,10 +1,28 @@
 <?php
 // ============================================================
-//  CONTROLADOR/pedidos/datosNuevaRuta.php
-//  Trae pedidos pendientes (sin ruta asignada) y repartidores
+//  CONTROLADOR/pedidos/datosNuevaRuta.php  (versión con geocodificación)
+//  Trae pedidos pendientes con coordenadas y repartidores
 // ============================================================
+require_once($_SERVER['DOCUMENT_ROOT'] . '/configuraciones/geocodificacion.php');
 
-// Pedidos pendientes que aún no tienen parada asignada en una ruta activa
+// Configuración del galpón desde BD
+$stmtGalpon = $conexionbd->prepare("
+    SELECT clave, valor FROM configuracion_sistema
+    WHERE clave IN ('galpon_latitud', 'galpon_longitud', 'galpon_direccion')
+");
+$stmtGalpon->execute();
+$configRows = $stmtGalpon->fetchAll();
+$config = [];
+foreach ($configRows as $row) {
+    $config[$row['clave']] = $row['valor'];
+}
+$galpon = [
+    'lat' => (float)($config['galpon_latitud']  ?? -31.4267),
+    'lng' => (float)($config['galpon_longitud'] ?? -62.0834),
+    'dir' => $config['galpon_direccion'] ?? 'Galpón Agua del Rey',
+];
+
+// Pedidos pendientes sin ruta asignada, con coordenadas del cliente
 $stmtPedidos = $conexionbd->prepare("
     SELECT
         p.id_pedido,
@@ -13,7 +31,9 @@ $stmtPedidos = $conexionbd->prepare("
         c.nombre,
         c.apellido,
         c.domicilio,
-        c.localidad
+        c.localidad,
+        c.latitud,
+        c.longitud
     FROM pedido p
     JOIN cliente c ON c.id_cliente = p.id_cliente
     WHERE p.id_estado = 1
@@ -27,7 +47,7 @@ $stmtPedidos = $conexionbd->prepare("
 $stmtPedidos->execute();
 $pedidosPendientes = $stmtPedidos->fetchAll();
 
-// Repartidores disponibles (empleados activos)
+// Repartidores activos
 $stmtRep = $conexionbd->prepare("
     SELECT id_empleado, nombre, apellido
     FROM usuario_empleado
@@ -36,3 +56,7 @@ $stmtRep = $conexionbd->prepare("
 ");
 $stmtRep->execute();
 $repartidores = $stmtRep->fetchAll();
+
+// ¿Cuántos pedidos tienen coordenadas?
+$conCoordenadas = array_filter($pedidosPendientes, fn($p) => $p['latitud'] && $p['longitud']);
+$sinCoordenadas = count($pedidosPendientes) - count($conCoordenadas);
