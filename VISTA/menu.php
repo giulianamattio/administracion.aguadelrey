@@ -1,26 +1,27 @@
 <?php
-// Recuperar datos del usuario logueado desde la sesión
-$idEmpleado = $_SESSION['id_empleado'] ?? null;
-$nombreUsuario = $_SESSION['nombre'] ?? 'Usuario';
-$rol = $_SESSION['rol'] ?? null;
+$idUsuario = 1;
+$consultaUsuario = $safesql->query("SELECT usuarios.nombre as nombreUsuario, usuarios.idRol as idRol, 
+roles.descripcion as nombreRol FROM usuarios INNER JOIN roles ON roles.idRol = usuarios.idRol 
+WHERE usuarios.idUsuario = ?i", $idUsuario);	
 
-// Si hay sesión activa, enriquecer con datos de BD
-if ($idEmpleado) {
-    $stmt = $conexionbd->prepare("
-        SELECT e.nombre, e.apellido, r.nombre AS nombreRol, e.id_rol
-        FROM usuario_empleado e
-        INNER JOIN rol r ON r.id_rol = e.id_rol
-        WHERE e.id_empleado = :id
-    ");
-    $stmt->execute([':id' => $idEmpleado]);
-    $rsUsuario = $stmt->fetch();
+if (mysqli_num_rows($consultaUsuario) != 0) {	
+	$rsUsuario = mysqli_fetch_array($consultaUsuario, MYSQLI_ASSOC);
+  $nombreUsuario = $rsUsuario["nombreUsuario"];
+	$descripcionRol = $rsUsuario["nombreRol"];
+	$rol = $rsUsuario["idRol"];
+}
+?>
 
-    if ($rsUsuario) {
-        $nombreUsuario   = $rsUsuario['nombre'] . ' ' . $rsUsuario['apellido'];
-        $descripcionRol  = $rsUsuario['nombrerol'];
-        $rol             = $rsUsuario['id_rol'];
-    }
-} 
+<?php
+$idUsuario = 1;
+require($_SERVER["DOCUMENT_ROOT"].'/MODELO/UsuarioClass.php');
+$usuario = usuario::buscarUsuarioPorId(1);
+if($usuario){
+  $nombreUsuario = $usuario->getNombre();
+  
+}else{
+  echo 'El usuario no ha podido ser encontrado';
+}
 ?>
                 
 
@@ -135,6 +136,16 @@ if ($idEmpleado) {
               </p>
             </a>
           </li>
+          <?php if($rol == 1): ?>
+          <li class="nav-item">
+            <a href="/clientes/geocodificarTodos" class="nav-link">
+              <i class="nav-icon fas fa-map-marker-alt"></i>
+              <p>
+                Geocodificación
+              </p>
+            </a>
+          </li>
+          <?php endif; ?>
 
 
           <li class="nav-header">M&Aacute;QUINAS DISPENSADORAS</li>
@@ -147,31 +158,19 @@ if ($idEmpleado) {
             </a>
           </li>
           <li class="nav-item">
-              <a href="/maquinasDispensadoras/listado" class="nav-link">
-                <i class="nav-icon fas fa-list-ul"></i>
-                  <p>
-                      Listado Máquinas
-                      <?php
-                      $stmtEnReparacion = $conexionbd->prepare("
-                          SELECT COUNT(*) AS total
-                          FROM maquina_dispensadora m
-                          INNER JOIN estado_maquina e ON e.id_estado = m.id_estado
-                          WHERE e.nombre = 'en_reparacion'
-                      ");
-                      $stmtEnReparacion->execute();
-                      $totalEnReparacion = $stmtEnReparacion->fetch()['total'];
-                      if ($totalEnReparacion > 0):
-                      ?>
-                          <span class="badge badge-warning right"><?= $totalEnReparacion ?></span>
-                      <?php endif; ?>
-                  </p>
-              </a>
+            <a href="/maquinasDispensadoras/listado" class="nav-link">
+              <i class="nav-icon fas fa-list-ul"></i>
+              <p>
+                Listado Máquinas
+                <span class="badge badge-info right">4</span>
+              </p>
+            </a>
           </li>
           <li class="nav-item">
             <a href="/maquinasDispensadoras/reportes" class="nav-link">
-              <i class="nav-icon fas fa-tools"></i>
+              <i class="nav-icon fas fa-chart-line"></i>
               <p>
-                Arreglos de Máquinas
+                Reportes
               </p>
             </a>
           </li>
