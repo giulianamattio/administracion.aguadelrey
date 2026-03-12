@@ -1,29 +1,8 @@
 <?php
-$idUsuario = 1;
-$consultaUsuario = $safesql->query("SELECT usuarios.nombre as nombreUsuario, usuarios.idRol as idRol, 
-roles.descripcion as nombreRol FROM usuarios INNER JOIN roles ON roles.idRol = usuarios.idRol 
-WHERE usuarios.idUsuario = ?i", $idUsuario);	
-
-if (mysqli_num_rows($consultaUsuario) != 0) {	
-	$rsUsuario = mysqli_fetch_array($consultaUsuario, MYSQLI_ASSOC);
-  $nombreUsuario = $rsUsuario["nombreUsuario"];
-	$descripcionRol = $rsUsuario["nombreRol"];
-	$rol = $rsUsuario["idRol"];
-}
+// Datos del empleado logueado desde sesión
+$nombreUsuario = $_SESSION['nombre'] ?? 'Usuario';
+$rol           = $_SESSION['rol']    ?? 0;
 ?>
-
-<?php
-$idUsuario = 1;
-require($_SERVER["DOCUMENT_ROOT"].'/MODELO/UsuarioClass.php');
-$usuario = usuario::buscarUsuarioPorId(1);
-if($usuario){
-  $nombreUsuario = $usuario->getNombre();
-  
-}else{
-  echo 'El usuario no ha podido ser encontrado';
-}
-?>
-                
 
 <!-- Main Sidebar Container -->
 <aside class="main-sidebar sidebar-dark-primary elevation-4">
@@ -43,9 +22,7 @@ if($usuario){
         </div>
         <div class="info">
           <a href="#" class="d-block">
-          <?php
-            echo $nombreUsuario." - ".$descripcionRol;
-          ?>
+          <?php echo $nombreUsuario; ?>
           </a>
         </div>
       </div>
@@ -65,35 +42,25 @@ if($usuario){
       <!-- Sidebar Menu -->
       <nav class="mt-2">
         <ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu" data-accordion="false">
-          <!-- Add icons to the links using the .nav-icon class
-               with font-awesome or any other icon font library -->
-         
+
           <li class="nav-header">PEDIDOS</li>
-          <?php
-          if($rol == 2 || $rol == 1){
-            ?> 
-            <li class="nav-item">
-              <a href="/pedidos/gestionarRutaRepartos" class="nav-link">
-                <i class="nav-icon fas fa-map-marked-alt"></i>
-                <p>
-                  Gestionar ruta de reparto
-                </p>
-              </a>
-            </li>
-            <?php   
-          }
-          ?>
+          <?php if($rol == 2 || $rol == 1): ?>
+          <li class="nav-item">
+            <a href="/pedidos/gestionarRutaRepartos" class="nav-link">
+              <i class="nav-icon fas fa-map-marked-alt"></i>
+              <p>Gestionar ruta de reparto</p>
+            </a>
+          </li>
+          <?php endif; ?>
           <li class="nav-item">
             <a href="/pedidos/nuevoPedido" class="nav-link">
               <i class="nav-icon fas fa-plus-square"></i>
-              <p>
-                Nuevo pedido
-              </p>
+              <p>Nuevo pedido</p>
             </a>
           </li>
           <li class="nav-item">
             <a href="/pedidos/listado" class="nav-link">
-            <i class="nav-icon fas fa-list-ul"></i>
+              <i class="nav-icon fas fa-list-ul"></i>
               <p>
                 Listado de pedidos
                 <span class="badge badge-info right">2</span>
@@ -103,14 +70,12 @@ if($usuario){
           <li class="nav-item">
             <a href="/cobros/nuevoCobro" class="nav-link">
               <i class="nav-icon fas fa-plus-square"></i>
-              <p>
-                Nuevo cobro
-              </p>
+              <p>Nuevo cobro</p>
             </a>
           </li>
           <li class="nav-item">
             <a href="/cobros/listado" class="nav-link">
-            <i class="nav-icon fas fa-list-ul"></i>
+              <i class="nav-icon fas fa-list-ul"></i>
               <p>
                 Listado de cobros
                 <span class="badge badge-info right">2</span>
@@ -120,9 +85,7 @@ if($usuario){
           <li class="nav-item">
             <a href="/pedidos/reporte" class="nav-link">
               <i class="nav-icon fas fa-chart-line"></i>
-              <p>
-                Reportes
-              </p>
+              <p>Reportes</p>
             </a>
           </li>
 
@@ -140,21 +103,16 @@ if($usuario){
           <li class="nav-item">
             <a href="/clientes/geocodificarTodos" class="nav-link">
               <i class="nav-icon fas fa-map-marker-alt"></i>
-              <p>
-                Geocodificación
-              </p>
+              <p>Geocodificación</p>
             </a>
           </li>
           <?php endif; ?>
-
 
           <li class="nav-header">M&Aacute;QUINAS DISPENSADORAS</li>
           <li class="nav-item">
             <a href="/maquinasDispensadoras/nuevoArreglo" class="nav-link">
               <i class="nav-icon fas fa-tools"></i>
-              <p>
-                Nuevo arreglo
-              </p>
+              <p>Nuevo arreglo</p>
             </a>
           </li>
           <li class="nav-item">
@@ -169,9 +127,7 @@ if($usuario){
           <li class="nav-item">
             <a href="/maquinasDispensadoras/reportes" class="nav-link">
               <i class="nav-icon fas fa-chart-line"></i>
-              <p>
-                Reportes
-              </p>
+              <p>Reportes</p>
             </a>
           </li>
 
@@ -179,15 +135,11 @@ if($usuario){
           <li class="nav-item">
             <a href="/sincronizacion" class="nav-link">
               <i class="nav-icon fas fa-sync-alt"></i>
-              <p>
-                Sincronizar
-              </p>
+              <p>Sincronizar</p>
             </a>
           </li>
-          
+
         </ul>
       </nav>
-      <!-- /.sidebar-menu -->
     </div>
-    <!-- /.sidebar -->
-  </aside>
+</aside>
