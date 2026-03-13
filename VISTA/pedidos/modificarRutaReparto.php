@@ -207,7 +207,7 @@ $pagina = 'Modificar ruta de reparto';
               <?php if (!empty($disponibles)): ?>
               <div class="card card-outline card-secondary mb-3" style="max-width:700px;">
                 <div class="card-header"><h6 class="mb-0">Agregar pedidos pendientes</h6></div>
-                <div class="card-body p-2">
+                <div class="card-body p-2" id="contenedorPendientes">
                   <?php foreach ($disponibles as $d): ?>
                     <div class="form-check">
                       <input type="checkbox" class="form-check-input chk-agregar"
@@ -264,11 +264,10 @@ $pagina = 'Modificar ruta de reparto';
 <script>
 const GALPON = { lat: <?= $galpon['lat'] ?>, lng: <?= $galpon['lng'] ?> };
 
-// Drag & drop
 const lista = document.getElementById('listaParadas');
 Sortable.create(lista, { animation: 150, handle: '.fa-grip-vertical' });
 
-// Eliminar parada
+// Eliminar parada → la devuelve a la lista de pendientes
 lista.addEventListener('click', function(e) {
     const btn = e.target.closest('.btn-eliminar-parada');
     if (!btn) return;
@@ -276,47 +275,81 @@ lista.addEventListener('click', function(e) {
         alert('La ruta debe tener al menos una parada.');
         return;
     }
-    btn.closest('li').remove();
+    const li       = btn.closest('li');
+    const idPed    = li.dataset.id;
+    const nombre   = li.dataset.nombre   || '';
+    const domicilio= li.dataset.domicilio|| '';
+    const lat      = li.dataset.lat      || '';
+    const lng      = li.dataset.lng      || '';
+
+    // Devolver a la lista de pendientes
+    const contenedor = document.getElementById('contenedorPendientes');
+    if (contenedor && !contenedor.querySelector(`[data-id="${idPed}"]`)) {
+        const div = document.createElement('div');
+        div.className  = 'form-check';
+        div.dataset.id = idPed;
+        div.innerHTML  = `
+            <input type="checkbox" class="form-check-input chk-agregar"
+                   id="ag${idPed}" data-id="${idPed}"
+                   data-lat="${lat}" data-lng="${lng}"
+                   data-nombre="${nombre}" data-domicilio="${domicilio}">
+            <label class="form-check-label" for="ag${idPed}">
+              <strong>#${idPed}</strong> — ${nombre} — ${domicilio}
+            </label>`;
+        const btnAgregar = document.getElementById('btnAgregar');
+        contenedor.insertBefore(div, btnAgregar);
+    }
+    li.remove();
 });
 
-// Agregar pedidos seleccionados a la lista
+// Agregar seleccionados → desaparecen de pendientes, aparecen en paradas
 document.getElementById('btnAgregar')?.addEventListener('click', function() {
     const checks = document.querySelectorAll('.chk-agregar:checked');
+    if (checks.length === 0) { alert('Seleccioná al menos un pedido.'); return; }
+
     checks.forEach(c => {
-        // Evitar duplicados
-        if (lista.querySelector(`li[data-id="${c.dataset.id}"]`)) return;
+        if (lista.querySelector(`li[data-id="${c.dataset.id}"]`)) {
+            c.closest('.form-check')?.remove();
+            return;
+        }
+        const tieneCoords = c.dataset.lat && c.dataset.lng;
         const li = document.createElement('li');
-        li.className = 'list-group-item d-flex justify-content-between align-items-center';
-        li.dataset.id  = c.dataset.id;
-        li.dataset.lat = c.dataset.lat;
-        li.dataset.lng = c.dataset.lng;
+        li.className        = 'list-group-item d-flex justify-content-between align-items-center';
+        li.dataset.id       = c.dataset.id;
+        li.dataset.lat      = c.dataset.lat;
+        li.dataset.lng      = c.dataset.lng;
+        li.dataset.nombre   = c.dataset.nombre;
+        li.dataset.domicilio= c.dataset.domicilio;
         li.innerHTML = `
             <span>
               <i class="fas fa-grip-vertical text-muted mr-2" style="cursor:grab;"></i>
-              <strong>#${c.dataset.id}</strong> — ${c.dataset.nombre} — ${c.dataset.domicilio}
+              <strong>#${c.dataset.id}</strong>
+              — ${c.dataset.nombre}
+              — ${c.dataset.domicilio}
+              <i class="fas fa-map-marker-alt ${tieneCoords ? 'text-success' : 'text-danger'} ml-1"></i>
             </span>
             <button type="button" class="btn btn-xs btn-danger btn-eliminar-parada" data-id="${c.dataset.id}">
               <i class="fas fa-times"></i>
             </button>`;
         lista.appendChild(li);
-        c.checked = false;
+        c.closest('.form-check')?.remove();
     });
 });
 
 // Haversine
 function distKm(lat1, lng1, lat2, lng2) {
-    const R = 6371, dLat = (lat2-lat1)*Math.PI/180, dLng = (lng2-lng1)*Math.PI/180;
+    const R = 6371, dLat=(lat2-lat1)*Math.PI/180, dLng=(lng2-lng1)*Math.PI/180;
     const a = Math.sin(dLat/2)**2 + Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLng/2)**2;
     return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
 }
 
 // Nearest Neighbor
 function nearestNeighbor(origen, destinos) {
-    let pend = [...destinos], ord = [], act = origen;
-    while (pend.length) {
-        let minD = Infinity, minI = 0;
-        pend.forEach((d,i) => { const d2 = distKm(act.lat,act.lng,d.lat,d.lng); if(d2<minD){minD=d2;minI=i;} });
-        ord.push(pend[minI]); act = pend[minI]; pend.splice(minI,1);
+    let pend=[...destinos], ord=[], act=origen;
+    while(pend.length){
+        let minD=Infinity, minI=0;
+        pend.forEach((d,i)=>{ const d2=distKm(act.lat,act.lng,d.lat,d.lng); if(d2<minD){minD=d2;minI=i;} });
+        ord.push(pend[minI]); act=pend[minI]; pend.splice(minI,1);
     }
     return ord;
 }
@@ -324,25 +357,22 @@ function nearestNeighbor(origen, destinos) {
 // Recalcular orden óptimo
 document.getElementById('btnRecalcular').addEventListener('click', function() {
     const items = Array.from(lista.querySelectorAll('li'));
-    const conCoords = items.filter(li => li.dataset.lat && li.dataset.lng)
-        .map(li => ({ el: li, lat: parseFloat(li.dataset.lat), lng: parseFloat(li.dataset.lng) }));
-    const sinCoords = items.filter(li => !li.dataset.lat || !li.dataset.lng);
-
-    if (conCoords.length === 0) {
-        alert('Ninguna parada tiene coordenadas para optimizar.');
-        return;
-    }
-
+    const conCoords = items.filter(li=>li.dataset.lat&&li.dataset.lng)
+        .map(li=>({el:li, lat:parseFloat(li.dataset.lat), lng:parseFloat(li.dataset.lng)}));
+    const sinCoords = items.filter(li=>!li.dataset.lat||!li.dataset.lng);
+    if(conCoords.length===0){ alert('Ninguna parada tiene coordenadas para optimizar.'); return; }
     const ordenado = nearestNeighbor(GALPON, conCoords);
     lista.innerHTML = '';
-    [...ordenado.map(d => d.el), ...sinCoords].forEach(el => lista.appendChild(el));
+    [...ordenado.map(d=>d.el), ...sinCoords].forEach(el=>lista.appendChild(el));
 });
 
-// Antes de enviar el form, serializar el orden
-document.querySelector('form').addEventListener('submit', function() {
-    const ids = Array.from(lista.querySelectorAll('li')).map(li => li.dataset.id);
+// Serializar orden antes de submit
+document.querySelector('form').addEventListener('submit', function(e) {
+    const ids = Array.from(lista.querySelectorAll('li')).map(li=>li.dataset.id);
+    if(ids.length===0){ e.preventDefault(); alert('La ruta debe tener al menos una parada.'); return; }
     document.getElementById('pedidosOrden').value = ids.join(',');
 });
 </script>
 </body>
 </html>
+
