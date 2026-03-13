@@ -265,7 +265,6 @@ $pagina = 'Modificar ruta de reparto';
 const GALPON = { lat: <?= $galpon['lat'] ?>, lng: <?= $galpon['lng'] ?> };
 
 const lista = document.getElementById('listaParadas');
-Sortable.create(lista, { animation: 150, handle: '.fa-grip-vertical' });
 
 // Eliminar parada → la devuelve a la lista de pendientes
 lista.addEventListener('click', function(e) {
@@ -300,6 +299,7 @@ lista.addEventListener('click', function(e) {
         contenedor.insertBefore(div, btnAgregar);
     }
     li.remove();
+    actualizarOrden();
 });
 
 // Agregar seleccionados → desaparecen de pendientes, aparecen en paradas
@@ -334,6 +334,7 @@ document.getElementById('btnAgregar')?.addEventListener('click', function() {
         lista.appendChild(li);
         c.closest('.form-check')?.remove();
     });
+    actualizarOrden();
 });
 
 // Haversine
@@ -364,14 +365,20 @@ document.getElementById('btnRecalcular').addEventListener('click', function() {
     const ordenado = nearestNeighbor(GALPON, conCoords);
     lista.innerHTML = '';
     [...ordenado.map(d=>d.el), ...sinCoords].forEach(el=>lista.appendChild(el));
+    actualizarOrden();
 });
 
-// Serializar orden antes de submit
-document.querySelector('form').addEventListener('submit', function(e) {
-    const ids = Array.from(lista.querySelectorAll('li')).map(li=>li.dataset.id);
-    if(ids.length===0){ e.preventDefault(); alert('La ruta debe tener al menos una parada.'); return; }
+// Actualizar el campo hidden en tiempo real cada vez que cambia la lista
+function actualizarOrden() {
+    const ids = Array.from(lista.querySelectorAll('li')).map(li => li.dataset.id);
     document.getElementById('pedidosOrden').value = ids.join(',');
-});
+}
+
+// Actualizar al cargar la página
+actualizarOrden();
+
+// Actualizar cuando SortableJS reordena
+Sortable.create(lista, { animation: 150, handle: '.fa-grip-vertical', onEnd: actualizarOrden });
 </script>
 </body>
 </html>
