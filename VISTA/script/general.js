@@ -4,7 +4,7 @@ function calcularRutaRepartos() {
     document.getElementById("tblPedidos").style.display = "table";
 }
 function volverHome(){
-    window.location.href = "/index";
+    window.location.href = "/principal";
 }
 
 function volverAlListadoRutas(){

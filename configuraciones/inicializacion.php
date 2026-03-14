@@ -4,6 +4,7 @@
 // ============================================================
 ob_start();
 
+//require_once($_SERVER['DOCUMENT_ROOT'] . '/configuraciones/env.php');  
 require_once($_SERVER['DOCUMENT_ROOT'] . '/configuraciones/session.php');
 
 error_reporting(E_ALL);

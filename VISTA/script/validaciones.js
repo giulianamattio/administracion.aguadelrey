@@ -1,112 +1,61 @@
-function validarNuevoPedido(theForm){
-    if (theForm.fecha.value === ""){
-        alert ("La fecha es un dato requerido.");
-        theForm.fecha.focus();
-        return false;
-    }
-    if (theForm.cliente.value === ""  ||  theForm.cliente.value == 0){
-        alert ("Por favor, ingrese el cliente.");
-        theForm.cliente.focus();
-        return false;
-    }
-    if (theForm.total.value === ""){
-      alert ("El monto total es un dato requerido.");
-      theForm.total.focus();
-      return false;
+function validarNuevoPedido(form) {
+    let valido = true;
+
+    // Limpiar errores previos
+    $('.error-msg').text('');
+    $('.form-control').removeClass('is-invalid');
+
+    // Validar fecha
+    const fecha = $('#fecha').val();
+    if (!fecha) {
+        $('#error-fecha').text('La fecha es obligatoria.');
+        $('#fecha').addClass('is-invalid');
+        valido = false;
     }
 
-    //Ingrese al menos un producto
-    if (theForm.productos.value === ""){
-      alert ("Debe ingresar al menos un producto. ");
-      theForm.total.focus();
-      return false;
+    // Validar cliente
+    const cliente = $('#cliente').val();
+    if (!cliente || cliente == '0') {
+        $('#error-cliente').text('Debe seleccionar un cliente.');
+        $('#cliente').addClass('is-invalid');
+        valido = false;
     }
 
-
-      return true;
-}
-
-
-function validarEvento(theForm){
-  if (theForm.nombreEvento.value === ""){
-      alert ("Por favor, ingrese el nombre del evento.");
-      theForm.nombreEvento.focus();
-      return false;
-  }
-  if (theForm.fecha.value === ""){
-      alert ("Por favor, ingrese la fecha del evento.");
-      theForm.fecha.focus();
-      return false;
-  }
-
-    return true;
-}
-
-
-function validarCoreografia(theForm){
-    if (theForm.academia.value === ""){
-      alert ("Por favor, ingrese el nombre de la academia.");
-      theForm.academia.focus();
-      return false;
+    // Validar total
+    const total = $('#total').val();
+    if (!total || isNaN(total) || parseFloat(total) <= 0) {
+        $('#error-total').text('El monto total debe ser un número mayor a 0.');
+        $('#total').addClass('is-invalid');
+        valido = false;
     }
-    else if (theForm.telefono.value === ""){
-       alert("Por favor, ingrese el nro de telefono.");
-       theForm.telefono.focus();
-       return false;
-    }
-    else if (theForm.maestro.value === ""){
-        alert("Por favor, ingrese el nombre del maestro preparador.");
-        theForm.maestro.focus();
-        return false;
-    }
-    else if (theForm.modalidad.value === ""){
-        alert("Por favor, ingrese la modalidad de la coreografia.");
-        theForm.modalidad.focus();
-        return false;
-    }
-    else if (theForm.categoria.value === "" ||  theForm.categoria.value == 0){
-        alert("Por favor, ingrese la categoria.");
-        theForm.categoria.focus();
-        return false;
-    }
-    else if (theForm.participacion.value === "" || theForm.participacion.value == 0){
-        alert("Por favor, ingrese la forma de participacion.");
-        theForm.participacion.focus();
-        return false;
-    }
-    else if (theForm.participacion.value == 4){
-        if (theForm.cantidadParticipantes.value === "" || theForm.cantidadParticipantes.value == 0){
-            alert("Por favor, ingrese la cantidad de participantes.");
-            theForm.cantidadParticipantes.focus();
-            return (false);
+
+    // Validar productos y cantidades
+    const cantidad = parseInt($('#cantidadProductoActual').val());
+    const productosSeleccionados = [];
+
+    for (let i = 1; i <= cantidad; i++) {
+        const producto = $('#producto' + i).val();
+        const cant     = $('#cantidad' + i).val();
+
+        if (!producto || producto == '0') {
+            $('.error-producto' + i).text('Debe seleccionar un producto.');
+            $('#producto' + i).addClass('is-invalid');
+            valido = false;
+        } else if (productosSeleccionados.includes(producto)) {
+            // Producto duplicado
+            $('.error-producto' + i).text('Este producto ya fue agregado.');
+            $('#producto' + i).addClass('is-invalid');
+            valido = false;
+        } else {
+            productosSeleccionados.push(producto);
+        }
+
+        if (!cant || isNaN(cant) || parseInt(cant) <= 0) {
+            $('.error-cantidad' + i).text('La cantidad debe ser mayor a 0.');
+            $('#cantidad' + i).addClass('is-invalid');
+            valido = false;
         }
     }
 
-    else if (theForm.participacion.value == 1){ //Solo
-      if (theForm.nombre1.value === "" || theForm.apellido1.value === "" || theForm.dni1.value === ""){
-            alert("Debe informar la totalidad de los participantes de la coreografia.");
-        theForm.nombre1.focus();
-        return false;
-      }
-    }else if (theForm.participacion.value == 2){ //Duo
-      if ((theForm.nombre1.value === "" || theForm.apellido1.value === "" || theForm.dni1.value === "")
-          && (theForm.nombre2.value === "" || theForm.apellido2.value === "" || theForm.dni2.value === "")){
-        alert("Debe informar la totalidad de los participantes de la coreografia.");
-        theForm.nombre1.focus();
-        return false;
-      }
-    }else if (theForm.participacion.value == 3){ //Trio
-      if ((theForm.nombre1.value === "" || theForm.apellido1.value === "" || theForm.dni1.value === "")
-          && (theForm.nombre2.value === "" || theForm.apellido2.value === "" || theForm.dni2.value === "")
-          && (theForm.nombre3.value === "" || theForm.apellido3.value === "" || theForm.dni3.value === "")){
-        alert("Debe informar la totalidad de los participantes de la coreografia.");
-        theForm.nombre1.focus();
-        return false;
-      }
-    }
-    /*else if (theForm.participacion.value == 4){ //Grupal
-      //For
-    }*/
-    
-    return true;
+    return valido;
 }

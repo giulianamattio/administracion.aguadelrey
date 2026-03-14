@@ -64,6 +64,26 @@
           <!-- left column -->
           <div class="col-md-12">
             <div class="card card-primary">
+
+              <?php if (isset($_GET['error']) && $_GET['error'] === 'pedido_duplicado'): ?>
+                  <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                      <strong>⚠️ Error:</strong> Ya existe un pedido pendiente para este cliente en la fecha seleccionada.
+                      <button type="button" class="close" data-dismiss="alert">
+                          <span>&times;</span>
+                      </button>
+                  </div>
+              <?php endif; ?>
+
+              <?php if (isset($_GET['exito']) && $_GET['exito'] === '1'): ?>
+                <div class="alert alert-success alert-dismissible fade show" role="alert">
+                    <strong>✅ Éxito:</strong> El pedido fue registrado correctamente.
+                    <button type="button" class="close" data-dismiss="alert">
+                        <span>&times;</span>
+                    </button>
+                </div>
+            <?php endif; ?>
+
+
               <form onSubmit="return validarNuevoPedido(this)" method="post" action="/CONTROLADOR/pedidos/nuevoPedido.php" >
                 <div class="card-body">
                     
@@ -72,25 +92,31 @@
                       <div class="form-group">
                         <label for="fecha">Fecha</label>
                         <input type="date" id="fecha" name="fecha" class="form-control form-control-sm">  
+                        <div id="error-fecha" class="text-danger small error-msg"></div>
                       </div>
                     </div>
 
                     <div class="col-sm-4" data-select2-id="44">
                       <div class="form-group">
                         <label for="cliente">Cliente</label>
-                        <select id="cliente" class="form-control form-control-sm select2 select2-hidden-accessible" style="width: 100%;" data-select2-id="1" tabindex="-1" aria-hidden="true">
+                        <select id="cliente" name="cliente" class="form-control form-control-sm select2 select2-hidden-accessible" style="width: 100%;" data-select2-id="1" tabindex="-1" aria-hidden="true">
                               <option value="0">Seleccione el cliente</option>
                               <?php
-                                $consultaClientes = $safesql->query("SELECT idCliente, nombreCompleto FROM clientes WHERE fechaBaja IS NULL");
-                                while($rsClientes = mysqli_fetch_array($consultaClientes, MYSQLI_ASSOC)){
-                                  $idCliente = $rsClientes["idCliente"];
-                                  $nombreCliente = $rsClientes["nombreCompleto"];
+                               $stmt = $conexionbd->prepare("SELECT id_cliente, nombre, apellido 
+                               FROM cliente WHERE fecha_baja IS NULL");
+                               $stmt->execute();
+                               $listaClientes = $stmt->fetchAll();
+                               foreach($listaClientes as $rsClientes){
+                                  $idCliente = $rsClientes["id_cliente"];
+                                  $nombreCliente = $rsClientes["nombre"];
+                                  $apellidoCliente = $rsClientes["apellido"];
                                   ?>
-                                  <option value="<?=$idCliente?>"><?= $nombreCliente?></option>
+                                  <option value="<?=$idCliente?>"><?= $nombreCliente?>, <?= $apellidoCliente?></option>
                                   <?php
                                 }
                                 ?>    
                         </select>
+                        <div id="error-cliente" class="text-danger small error-msg"></div>
 
                       </div>
                     </div>
@@ -103,12 +129,26 @@
                           <div class="input-group-prepend">
                               <span class="input-group-text form-control-sm" id="basic-addon1">$</span>
                           </div>
-                          <input type="texto" id="total" name="total" class="form-control form-control-sm" placeholder="">  
+                          <input type="texto" id="total" name="total" class="form-control form-control-sm" placeholder=""> 
+                          </br> <div id="error-total" class="text-danger small error-msg"></div> 
                         </div>
                       </div>
                     </div>
 
                   </div>
+
+
+
+                  <div class="row">
+                    <div class="col-sm-6">
+                      <div class="form-group">
+                        <label for="fecha">Observaciones internas</label>
+                        <textarea id="observaciones" name="observaciones" class="form-control form-control-sm"></textarea>  
+                        
+                      </div>
+                    </div>
+                  </div>
+
 
                 <label for="productos">Productos</label>
  
@@ -124,23 +164,27 @@
                     <tbody> 
                         <tr>
                             <td>
-                                <select class="form-control form-control-sm" id="producto1">
-                                <option value="0">Seleccione el producto</option>
+                                <select class="form-control form-control-sm" id="producto1" name="producto1">
+                                <option value="0">Seleccione un producto</option>
                                     <?php
-                                      $consultaProductos = $safesql->query("SELECT idProducto, descripcion FROM productos WHERE fechaBaja IS NULL");
-                                      while($rsProductos= mysqli_fetch_array($consultaProductos, MYSQLI_ASSOC)){
-                                        $idProducto = $rsProductos["idProducto"];
-                                        $descProducto = $rsProductos["descripcion"];
+                                     $stmt = $conexionbd->prepare("SELECT id_producto, nombre FROM producto WHERE fecha_baja IS NULL");
+                                     $stmt->execute();
+                                     $listaProductos = $stmt->fetchAll();
+                                     foreach($listaProductos as $rsProductos){
+                                        $idProducto = $rsProductos["id_producto"];
+                                        $descProducto = $rsProductos["nombre"];
                                         ?>
                                         <option value="<?=$idProducto?>"><?= $descProducto?></option>
                                         <?php
                                       }
                                       ?>    
                                 </select> 
+                                <div class="invalid-feedback d-block text-danger small error-producto1"></div>
                             </td> 
                             <td> 
                                 <input type="number" class="form-control form-control-sm" id="cantidad1" name="cantidad1" class="cantidad" />  
-                            </td> 
+                                <div class="invalid-feedback d-block text-danger small error-cantidad1"></div>
+                              </td> 
                             <td>  
                                 <i class="fas fa-minus-square fa-lg button_eliminar_producto" style="color: #dc3545;"></i>
                             </td> 
@@ -198,6 +242,8 @@
 <script src="/plugins/select2/js/select2.full.min.js"></script>
 <script src="/VISTA/script/productos.js"></script>
 <script>
+
+
   $(function () {
     //Initialize Select2 Elements
     $('.select2').select2()

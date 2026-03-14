@@ -116,11 +116,21 @@ if ($idEmpleado) {
               </p>
             </a>
           </li>
+          
+
+          <li class="nav-header">REPORTES</li>
           <li class="nav-item">
-            <a href="/pedidos/reporte" class="nav-link">
+            <a href="/reportes/reportePedidosTotal" class="nav-link">
               <i class="nav-icon fas fa-chart-line"></i>
               <p>
-                Reportes
+                Pedidos por período
+              </p>
+            </a>
+          </li><li class="nav-item">
+            <a href="/reportes/reporteClientes" class="nav-link">
+              <i class="nav-icon fas fa-chart-line"></i>
+              <p>
+                Pedidos por cliente
               </p>
             </a>
           </li>

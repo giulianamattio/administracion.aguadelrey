@@ -1,95 +1,90 @@
 <?php
 require($_SERVER["DOCUMENT_ROOT"].'/configuraciones/inicializacion.php');
 
-$fecha = $_POST["fecha"];
-$cliente = $_POST["cliente"];
-$total = $_POST["total"];
-$cantidadProductoActual= $_POST["cantidadProductoActual"];
-$error = 0;
+$fecha                 = $_POST["fecha"];
+$cliente               = $_POST["cliente"];
+$total                 = $_POST["total"];
+$observaciones         = $_POST["observaciones"];
+$cantidadProductoActual = $_POST["cantidadProductoActual"];
+$idOrigenPedido = 1; //adm
+$idEstado = 1; //Pendiente
 
 
+// Verificar si ya existe pedido pendiente para ese cliente y fecha
+$stmtVerifica = $conexionbd->prepare("
+    SELECT COUNT(*) as total 
+    FROM pedido 
+    WHERE id_cliente = :id_cliente 
+    AND DATE(fecha_pedido) = :fecha 
+    AND id_estado = 1
+    AND fecha_baja is null
+");
+$stmtVerifica->execute([
+    ':id_cliente' => $cliente,
+    ':fecha'      => $fecha
+]);
+$rowVerifica = $stmtVerifica->fetch();
 
-$consultaUltimoId = $safesql->query("SELECT MAX(idPedido) as idPedido FROM pedidos ORDER BY idPedido DESC");	
-if (mysqli_num_rows($consultaUltimoId) != 0) {	
-	$rsUltimoId = mysqli_fetch_array($consultaUltimoId, MYSQLI_ASSOC);
-    $ultimoId = $rsUltimoId["idPedido"];
-    $idPedido = $ultimoId + 1;
-}else{
-    $idPedido = 1;
+if ($rowVerifica['total'] > 0) {
+    header('Location: /pedidos/nuevoPedido?error=pedido_duplicado');
+    exit;
 }
 
 
 
+try {
 
-if($cantidadProductoActual >= 1){
-    //AGREGAR PARTICIPANTES
-    
-    for ($i = 1; $i <= $cantidadProductoActual; $i++) {
-        $producto = $_POST['producto'.$i];
-        $cantidad = $_POST['cantidad'.$i];
+    //  insertar el pedido
+    $stmt     = $conexionbd->query("SELECT COALESCE(MAX(id_pedido), 0) + 1 AS proximo FROM pedido");
+    $row      = $stmt->fetch();
+    $idPedido = $row['proximo'] ?? 1;
 
-      
-            //Agregar producto-Pedido
-            $bggbbgbbjmhnjhnm= $safesql->query("SELECT MAX(idParticipante) AS idParticipante FROM participantes ORDER BY idParticipante DESC");	
-            if (mysqli_num_rows($consultaUltimoIdParticipante) != 0) {	
-                $rsUltimoIdParticipante = mysqli_fetch_array($consultaUltimoIdParticipante, MYSQLI_ASSOC);
-                $ultimoIdParticipante  = $rsUltimoIdParticipante["idParticipante"];
-                $idParticipante = $ultimoIdParticipante + 1;
-            }
-            $nuevoParticipante= $safesql->query("INSERT INTO participantes(idParticipante, nombre, apellido, dni, fechaNacimiento) 
-            VALUES(?i, ?s, ?s, ?i, ?s)", $idParticipante, $nombre, $apellido, $dni, $fechaNacimiento);
-            $resultadoNuevoParticipante= mysqli_query($conexionbd, $nuevoParticipante, MYSQLI_STORE_RESULT); 
-            if (!$resultadoNuevoParticipante) {
-                $error++;
-            }
-        
+    $stmtInsertPedido = $conexionbd->prepare("
+        INSERT INTO pedido (id_pedido, id_cliente, fecha_pedido, total, id_origen_pedido, id_estado, observaciones_internas) 
+        VALUES (:id_pedido, :id_cliente, :fecha_pedido, :total, :id_origen_pedido, :id_estado, :observaciones_internas) 
+        RETURNING id_pedido
+    ");
+    $stmtInsertPedido->execute([
+        ':id_pedido'    => $idPedido,
+        ':id_cliente'   => $cliente,
+        ':fecha_pedido' => $fecha,
+        ':total'        => $total,
+        ':id_origen_pedido'   => $idOrigenPedido,
+        ':id_estado'   => $idEstado,
+        ':observaciones_internas'   => $observaciones
+    ]);
 
-        //Agregar relacion partipante y academia
-        $consultaRelacionParticipanteAcademia = $safesql->query("SELECT idParticipanteAcademia
-        FROM participantesacademias WHERE idParticipante = ?i AND idAcademia = ?i", $idParticipante, $idAcademia);	
-        if (mysqli_num_rows($consultaRelacionParticipanteAcademia) != 0) {	
-            $rsParticipanteAcademia= mysqli_fetch_array($consultaRelacionParticipanteAcademia, MYSQLI_ASSOC);
-            $idParticipanteAcademia = $rsParticipanteAcademia["idParticipanteAcademia"];
-        }else{
-            //Agregar agregar relacion participante/academia
-            $consultaUltimoIdParticipanteAcademia = $safesql->query("SELECT MAX(idParticipanteAcademia) 
-            AS idParticipanteAcademia FROM participantesacademias ORDER BY idParticipanteAcademia DESC");	
-            if (mysqli_num_rows($consultaUltimoIdParticipanteAcademia) != 0) {	
-                $rsUltimoIdParticipanteAcademia = mysqli_fetch_array($consultaUltimoIdParticipanteAcademia, MYSQLI_ASSOC);
-                $ultimoIdParticipanteAcademia  = $rsUltimoIdParticipanteAcademia["idParticipanteAcademia"];
-                $idParticipanteAcademia = $ultimoIdParticipanteAcademia + 1;
-            }
-            $nuevaRelacionParticipanteAcademia= $safesql->query("INSERT INTO participantesacademias(idParticipanteAcademia, idParticipante, idAcademia) 
-            VALUES(?i, ?i, ?i)", $idParticipanteAcademia, $idParticipante, $idAcademia);
-            $resultadoNuevaRelacionParticipanteAcademia= mysqli_query($conexionbd, $nuevaRelacionParticipanteAcademia, MYSQLI_STORE_RESULT); 
-            if (!$resultadoNuevaRelacionParticipanteAcademia) {
-                $error++;
-            }
-        }
+    //  insertar los productos
+    if ($cantidadProductoActual >= 1) {
+        $stmtInsertDetalle = $conexionbd->prepare("
+                INSERT INTO pedido_producto (id_pedido_producto, id_pedido, id_producto, cantidad) 
+                VALUES (:id_pedido_producto, :id_pedido, :id_producto, :cantidad)
+            ");
 
+        for ($i = 1; $i <= $cantidadProductoActual; $i++) {
+            $producto = $_POST['producto' . $i];
+            $cantidad = $_POST['cantidad' . $i];
 
-
-        //Agregar relacion particpante y coreografia
-        $consultaUltimoIdCoreografiaParticipante = $safesql->query("SELECT MAX(idCoreografiaParticipante) AS idCoreografiaParticipante FROM coreografiasparticipantes ORDER BY idCoreografiaParticipante DESC");	
-        if (mysqli_num_rows($consultaUltimoIdCoreografiaParticipante) != 0) {	
-            $rsUltimoIdCoreografiaParticipante = mysqli_fetch_array($consultaUltimoIdCoreografiaParticipante, MYSQLI_ASSOC);
-            $ultimoIdCoreografiaParticipante  = $rsUltimoIdCoreografiaParticipante["idCoreografiaParticipante"];
-            $idCoreografiaParticipante = $ultimoIdCoreografiaParticipante + 1;
-        }
-        $nuevaCoreografiaParticipante= $safesql->query("INSERT INTO coreografiasparticipantes(idCoreografiaParticipante, idParticipante, idCoreografia) 
-            VALUES(?i, ?i, ?i)", $idCoreografiaParticipante, $idParticipante, $idCoreografia);
-        $resultadoNuevaCoreografiaParticipante= mysqli_query($conexionbd, $nuevaCoreografiaParticipante, MYSQLI_STORE_RESULT);
-        if (!$resultadoNuevaCoreografiaParticipante) {
-            $error++;
+            $stmtMax = $conexionbd->query("SELECT nextval('seq_pedido_producto') AS proximo");
+            $rowMax  = $stmtMax->fetch();
+            $idPedidoProducto = $rowMax['proximo'];
+                        
+            $stmtInsertDetalle->execute([
+                ':id_pedido_producto' => $idPedidoProducto,
+                ':id_pedido'          => $idPedido,
+                ':id_producto'        => $producto,
+                ':cantidad'           => $cantidad
+            ]);
         }
     }
-}
 
+    // 
+    header('Location: /pedidos/nuevoPedido?exito=1');
+    exit;
+
+} catch (PDOException $e) {
+    error_log("ERROR INSERT PEDIDO: " . $e->getMessage());
+    header('Location: /pedidos/nuevoPedido?error=1');
+    exit;
+}
 ?>
-<html>
-    <head>
-        <script language="JavaScript">
-        window.top.location.href="/nuevoPedido"; 
-        </script>
-    </head>
-</html>
