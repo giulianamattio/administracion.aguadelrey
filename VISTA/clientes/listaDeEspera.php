@@ -1,245 +1,250 @@
+<?php require_once($_SERVER["DOCUMENT_ROOT"].'/configuraciones/inicializacion.php'); ?>
+<?php require_once($_SERVER["DOCUMENT_ROOT"].'/CONTROLADOR/clientes/listaEspera.php'); ?>
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <?php
-  $pagina = 'Lista de Espera';
-  ?>
-  <title>Agua del Rey | <?php echo $pagina; ?></title>
-
+  <?php $pagina = 'Lista de Espera'; ?>
+  <title>Agua del Rey | <?= $pagina ?></title>
   <link rel="Agua del rey" href="/favicon.ico">
-  <?php 
-  require($_SERVER["DOCUMENT_ROOT"].'/configuraciones/inicializacion.php');
-  require($_SERVER["DOCUMENT_ROOT"].'/VISTA/css/cssGeneral.php');
-  ?>
+  <?php require($_SERVER["DOCUMENT_ROOT"].'/VISTA/css/cssGeneral.php'); ?>
 </head>
 
 <body class="hold-transition sidebar-mini layout-fixed">
 <div class="wrapper">
 
-  <?php 
+  <?php
   require($_SERVER["DOCUMENT_ROOT"].'/VISTA/encabezado.php');
   require($_SERVER["DOCUMENT_ROOT"].'/VISTA/menu.php');
-
   ?>
-  <!-- Content Wrapper. Contains page content -->
+
   <div class="content-wrapper">
-    <!-- Content Header (Page header) -->
     <section class="content-header">
       <div class="container-fluid">
         <div class="row mb-2">
-          <div class="col-sm-6">
-            <h1>Lista de Espera</h1>
-          </div>
+          <div class="col-sm-6"><h1><?= $pagina ?></h1></div>
           <div class="col-sm-6">
             <ol class="breadcrumb float-sm-right">
               <li class="breadcrumb-item"><a href="#">Clientes</a></li>
-              <li class="breadcrumb-item active"><?=$pagina?></li>
+              <li class="breadcrumb-item active"><?= $pagina ?></li>
             </ol>
           </div>
         </div>
-      </div><!-- /.container-fluid -->
+      </div>
     </section>
 
-    <!-- Main content -->
     <section class="content">
       <div class="container-fluid">
         <div class="row">
           <div class="col-md-12">
             <div class="card">
               <div class="card-header">
-                <h3 class="card-title">Clientes en Lista de Espera</h3>
+                <h3 class="card-title">Clientes pendientes de aprobación</h3>
               </div>
-              <!-- /.card-header -->
+
               <div class="card-body">
-              <?php
-              
-                require($_SERVER["DOCUMENT_ROOT"].'/MODELO/clienteClass.php');
-                $clientes = cliente::buscarClientes();
-                ?>
-                <html>
-                  <head></head>
-                  <body>
-                      <ul>
-                      <?php foreach($clientes as $item): ?>
-                      <li> <?php echo $item['nombreCompleto'] . ' - ' . $item['dni']; ?> </li>
-                      <?php endforeach; ?>
-                      </ul>
-                  </body>
-                </html>
 
+                <?php if (isset($_GET['ok'])): ?>
+                  <div class="alert alert-success alert-dismissible">
+                    <button type="button" class="close" data-dismiss="alert">&times;</button>
+                    <?= $_GET['ok'] === 'aprobado' ? '✅ Cliente aprobado correctamente.' : '❌ Cliente rechazado.' ?>
+                  </div>
+                <?php endif; ?>
 
-
-
-
-
-
-                <table class="table table-bordered">
+                <table class="table table-bordered table-hover">
                   <thead>
                     <tr>
-                      <th style="width: 10px">#</th>
+                      <th>#</th>
                       <th>Nombre y Apellido</th>
+                      <th>DNI / CUIT</th>
                       <th>Teléfono</th>
                       <th>Domicilio</th>
                       <th>Email</th>
+                      <th>Fecha solicitud</th>
                       <th>Acciones</th>
-                      <!--<th>Progress</th>
-                      <th style="width: 40px">Label</th>-->
                     </tr>
                   </thead>
                   <tbody>
-                    <tr>
-                      <td>1.</td>
-                      <td>Juan Pérez</td>
-                      <td> 458698 </td>
-                      <td>
-                          Bv. Buenos Aires 258
-                        <!--<div class="progress progress-xs">
-                          <div class="progress-bar progress-bar-danger" style="width: 55%"></div>
-                        </div>-->
-                      </td>
-                      <td>juan@gmail.com</td>
-                      <td>
-                        <a href="" data-toggle="modal" data-target="#modalAprobarCliente"><i class="fas fa-check-square fa-lg" style="color: #28a745;"></i></a> &nbsp; 
-                        <a href="" data-toggle="modal" data-target="#modalVerDatos"><i class="fas fa-info-circle fa-lg"  style="color: #17a2b8;"></i></a>
-                        <!--<span class="badge bg-danger">55%</span>-->
-                      </td>
-                    </tr>
-                    <tr>
-                      <td>2.</td>
-                      <td>María Giménez</td>
-                      <td>15477858</td>
-                      <td>
-                          Colón 878
-                        <!--<div class="progress progress-xs">
-                          <div class="progress-bar bg-warning" style="width: 70%"></div>
-                        </div>-->
-                      </td>
-                      <td>maria_gimenez@hotmail.com</td>
-                      <td>
-                        <a href="" data-toggle="modal" data-target="#modalAprobarCliente"><i class="fas fa-check-square fa-lg" style="color: #28a745;"></i></a> &nbsp; 
-                        <a href="" data-toggle="modal" data-target="#modalVerDatos"><i class="fas fa-info-circle fa-lg"  style="color: #17a2b8;"></i></a>
-                          <!--<span class="badge bg-warning">70%</span>-->
-                        </td>
-                    </tr>
-                    <tr>
-                      <td>3.</td>
-                      <td>Roberto Gómez</td>
-                      <td></td>
-                      <td>
-                          Bv. 25 de Mayo 1852
-                        <!--<div class="progress progress-xs progress-striped active">
-                          <div class="progress-bar bg-primary" style="width: 30%"></div>
-                        </div>-->
-                      </td>
-                      <td>rober@hotmail.com</td>
-                      <td>
-                        <a href="" data-toggle="modal" data-target="#modalAprobarCliente"><i class="fas fa-check-square fa-lg" style="color: #28a745;"></i></a> &nbsp; 
-                        <a href="" data-toggle="modal" data-target="#modalVerDatos"><i class="fas fa-info-circle fa-lg"  style="color: #17a2b8;"></i></a>
-                          <!--<span class="badge bg-primary">30%</span>-->
-                        </td>
-                    </tr>
-                    <tr>
-                      <td>4.</td>
-                      <td>Ricardo Cabrera</td>
-                      <td>3564 15585698</td>
-                      <td>
-                          Mitre 2332
-                        <!--<div class="progress progress-xs progress-striped active">
-                          <div class="progress-bar bg-success" style="width: 90%"></div>
-                        </div>-->
-                      </td>
-                      <td>rcabrera@hotmail.com</td>
-                      <td>
-                        <a href="" data-toggle="modal" data-target="#modalAprobarCliente">
-                            <i class="fas fa-check-square fa-lg" style="color: #28a745;"></i></a> &nbsp; 
-                        <a href="" data-toggle="modal" data-target="#modalVerDatos"><i class="fas fa-info-circle fa-lg"  style="color: #17a2b8;"></i></a>
-                          <!--<span class="badge bg-success">90%</span>-->
-                       </td>
-                    </tr>
+                    <?php if (count($clientesPendientes) > 0): ?>
+                      <?php foreach ($clientesPendientes as $i => $c): ?>
+                        <tr>
+                          <td><?= $i + 1 ?></td>
+                          <td><?= htmlspecialchars($c['nombre'] . ' ' . $c['apellido']) ?>
+                            <?php if ($c['razon_social']): ?>
+                              <br><small class="text-muted"><?= htmlspecialchars($c['razon_social']) ?></small>
+                            <?php endif; ?>
+                          </td>
+                          <td><?= htmlspecialchars($c['dni_cuit']) ?></td>
+                          <td><?= htmlspecialchars($c['telefono'] ?? '-') ?></td>
+                          <td><?= htmlspecialchars($c['domicilio'] ?? '-') ?></td>
+                          <td><?= htmlspecialchars($c['email']) ?></td>
+                          <td><?= date('d/m/Y', strtotime($c['created_at'])) ?></td>
+                          <td>
+                            <!-- Botón aprobar -->
+                            <a href="#"
+                               class="btn-aprobar"
+                               data-id="<?= $c['id_espera'] ?>"
+                               data-nombre="<?= htmlspecialchars($c['nombre'] . ' ' . $c['apellido']) ?>"
+                               data-email="<?= htmlspecialchars($c['email']) ?>"
+                               title="Aprobar">
+                              <i class="fas fa-check-square fa-lg" style="color: #28a745;"></i>
+                            </a>
+                            &nbsp;
+                            <!-- Botón ver datos -->
+                            <a href="#"
+                               class="btn-ver"
+                               data-id="<?= $c['id_espera'] ?>"
+                               data-nombre="<?= htmlspecialchars($c['nombre'] . ' ' . $c['apellido']) ?>"
+                               data-dni="<?= htmlspecialchars($c['dni_cuit']) ?>"
+                               data-email="<?= htmlspecialchars($c['email']) ?>"
+                               data-tel="<?= htmlspecialchars($c['telefono'] ?? '-') ?>"
+                               data-dom="<?= htmlspecialchars($c['domicilio'] ?? '-') ?>"
+                               data-loc="<?= htmlspecialchars($c['localidad'] ?? '-') ?>"
+                               data-prov="<?= htmlspecialchars($c['provincia'] ?? '-') ?>"
+                               title="Ver datos">
+                              <i class="fas fa-info-circle fa-lg" style="color: #17a2b8;"></i>
+                            </a>
+                            &nbsp;
+                            <!-- Botón rechazar -->
+                            <a href="#"
+                               class="btn-rechazar"
+                               data-id="<?= $c['id_espera'] ?>"
+                               data-nombre="<?= htmlspecialchars($c['nombre'] . ' ' . $c['apellido']) ?>"
+                               title="Rechazar">
+                              <i class="fas fa-minus-square fa-lg" style="color: #dc3545;"></i>
+                            </a>
+                          </td>
+                        </tr>
+                      <?php endforeach; ?>
+                    <?php else: ?>
+                      <tr>
+                        <td colspan="8" class="text-center text-muted">No hay clientes pendientes de aprobación.</td>
+                      </tr>
+                    <?php endif; ?>
                   </tbody>
                 </table>
               </div>
-              <!-- /.card-body -->
-              <div class="card-footer clearfix">
-                <ul class="pagination pagination-sm m-0 float-right">
-                  <li class="page-item"><a class="page-link" href="#">&laquo;</a></li>
-                  <li class="page-item"><a class="page-link" href="#">1</a></li>
-                  <li class="page-item"><a class="page-link" href="#">2</a></li>
-                  <li class="page-item"><a class="page-link" href="#">3</a></li>
-                  <li class="page-item"><a class="page-link" href="#">&raquo;</a></li>
-                </ul>
-              </div>
             </div>
-            <!-- /.card -->
-
           </div>
-          <!-- /.col -->
         </div>
-        <!-- /.row -->
-        
-      </div><!-- /.container-fluid -->
+      </div>
     </section>
-    <!-- /.content -->
   </div>
 
-  
-  <div class="modal fade" id="modalAprobarCliente">
+  <!-- Modal Aprobar -->
+  <div class="modal fade" id="modalAprobar">
     <div class="modal-dialog">
-        <div class="modal-content">
+      <div class="modal-content">
         <div class="modal-header">
-            <h4 class="modal-title">Aprobar cliente</h4>
-            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-            <span aria-hidden="true">&times;</span>
-            </button>
+          <h4 class="modal-title">Aprobar cliente</h4>
+          <button type="button" class="close" data-dismiss="modal">&times;</button>
         </div>
-        <div class="modal-body">
-            <p>Se enviará un email a la siguiente dirección maria_gimenez@hotmail.com</p>
-        </div>
-        <div class="modal-footer justify-content-between">
+        <form action="/clientes/aprobarCliente" method="POST">
+          <input type="hidden" name="idEspera" id="aprobar-id">
+          <div class="modal-body">
+            <p>¿Confirmás la aprobación de <strong id="aprobar-nombre"></strong>?</p>
+            <p class="text-muted">Se creará su cuenta y se le notificará a <span id="aprobar-email"></span>.</p>
+          </div>
+          <div class="modal-footer justify-content-between">
             <button type="button" class="btn btn-default" data-dismiss="modal">Cancelar</button>
-            <button type="button" class="btn btn-success">Aprobar</button>
-        </div>
-        </div>
-        <!-- /.modal-content -->
+            <button type="submit" class="btn btn-success">Aprobar</button>
+          </div>
+        </form>
+      </div>
     </div>
-    <!-- /.modal-dialog -->
-    </div>
+  </div>
 
-
-    <div class="modal fade" id="modalVerDatos">
+  <!-- Modal Ver Datos -->
+  <div class="modal fade" id="modalVerDatos">
     <div class="modal-dialog">
-        <div class="modal-content">
+      <div class="modal-content">
         <div class="modal-header">
-            <h4 class="modal-title">Datos Cliente</h4>
-            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-            <span aria-hidden="true">&times;</span>
-            </button>
+          <h4 class="modal-title">Datos del cliente</h4>
+          <button type="button" class="close" data-dismiss="modal">&times;</button>
         </div>
         <div class="modal-body">
-            <p> </p>
+          <table class="table table-sm">
+            <tr><th>Nombre</th><td id="ver-nombre"></td></tr>
+            <tr><th>DNI/CUIT</th><td id="ver-dni"></td></tr>
+            <tr><th>Email</th><td id="ver-email"></td></tr>
+            <tr><th>Teléfono</th><td id="ver-tel"></td></tr>
+            <tr><th>Domicilio</th><td id="ver-dom"></td></tr>
+            <tr><th>Localidad</th><td id="ver-loc"></td></tr>
+            <tr><th>Provincia</th><td id="ver-prov"></td></tr>
+          </table>
         </div>
-        <div class="modal-footer justify-content-between">
-            <button type="button" class="btn btn-default">Cerrar</button>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-default" data-dismiss="modal">Cerrar</button>
         </div>
-        </div>
-        <!-- /.modal-content -->
+      </div>
     </div>
-    <!-- /.modal-dialog -->
+  </div>
+
+  <!-- Modal Rechazar -->
+  <div class="modal fade" id="modalRechazar">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h4 class="modal-title">Rechazar cliente</h4>
+          <button type="button" class="close" data-dismiss="modal">&times;</button>
+        </div>
+        <form action="/clientes/rechazarCliente" method="POST">
+          <input type="hidden" name="idEspera" id="rechazar-id">
+          <div class="modal-body">
+            <p>¿Confirmás el rechazo de <strong id="rechazar-nombre"></strong>?</p>
+            <p class="text-danger">Esta acción no se puede deshacer.</p>
+          </div>
+          <div class="modal-footer justify-content-between">
+            <button type="button" class="btn btn-default" data-dismiss="modal">Cancelar</button>
+            <button type="submit" class="btn btn-danger">Rechazar</button>
+          </div>
+        </form>
+      </div>
     </div>
+  </div>
 
-  <?php 
-    require($_SERVER["DOCUMENT_ROOT"].'/VISTA/footer.php');
-  ?>
-    
-
+  <?php require($_SERVER["DOCUMENT_ROOT"].'/VISTA/footer.php'); ?>
 </div>
-<!-- ./wrapper -->
 
-<?php 
-  require($_SERVER["DOCUMENT_ROOT"].'/VISTA/script/scriptGeneral.php');
-?>
+<?php require($_SERVER["DOCUMENT_ROOT"].'/VISTA/script/scriptGeneral.php'); ?>
 
+<script>
+// Aprobar
+document.querySelectorAll('.btn-aprobar').forEach(function(btn) {
+    btn.addEventListener('click', function(e) {
+        e.preventDefault();
+        document.getElementById('aprobar-id').value    = this.dataset.id;
+        document.getElementById('aprobar-nombre').textContent = this.dataset.nombre;
+        document.getElementById('aprobar-email').textContent  = this.dataset.email;
+        $('#modalAprobar').modal('show');
+    });
+});
+
+// Ver datos
+document.querySelectorAll('.btn-ver').forEach(function(btn) {
+    btn.addEventListener('click', function(e) {
+        e.preventDefault();
+        document.getElementById('ver-nombre').textContent = this.dataset.nombre;
+        document.getElementById('ver-dni').textContent    = this.dataset.dni;
+        document.getElementById('ver-email').textContent  = this.dataset.email;
+        document.getElementById('ver-tel').textContent    = this.dataset.tel;
+        document.getElementById('ver-dom').textContent    = this.dataset.dom;
+        document.getElementById('ver-loc').textContent    = this.dataset.loc;
+        document.getElementById('ver-prov').textContent   = this.dataset.prov;
+        $('#modalVerDatos').modal('show');
+    });
+});
+
+// Rechazar
+document.querySelectorAll('.btn-rechazar').forEach(function(btn) {
+    btn.addEventListener('click', function(e) {
+        e.preventDefault();
+        document.getElementById('rechazar-id').value    = this.dataset.id;
+        document.getElementById('rechazar-nombre').textContent = this.dataset.nombre;
+        $('#modalRechazar').modal('show');
+    });
+});
+</script>
 </body>
 </html>

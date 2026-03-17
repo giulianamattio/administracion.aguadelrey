@@ -44,7 +44,19 @@ RewriteRule ^index/([a-zA-Z0-9_-]+)$ /index.php?error=$1 [L,NC]
 ErrorDocument 404 /principal.php
 
 #CLIENTES
-RewriteRule ^clientes/listaDeEspera$ /VISTA/clientes/listaDeEspera.php [L,NC]
+RewriteRule ^clientes/registro$           /VISTA/clientes/registroCliente.php [L,NC]
+RewriteRule ^clientes/procesarRegistro$   /CONTROLADOR/clientes/procesarRegistro.php [L,NC]
+RewriteRule ^clientes/listaDeEspera$      /VISTA/clientes/listaDeEspera.php [L,NC]
+RewriteRule ^clientes/aprobarCliente$     /CONTROLADOR/clientes/aprobarCliente.php [L,NC]
+RewriteRule ^clientes/rechazarCliente$    /CONTROLADOR/clientes/rechazarCliente.php [L,NC]
+RewriteRule ^clientes/login$           /VISTA/clientes/portal/login.php [L,NC]
+RewriteRule ^clientes/procesarLogin$   /CONTROLADOR/clientes/procesarLogin.php [L,NC]
+RewriteRule ^clientes/logout$          /CONTROLADOR/clientes/logout.php [L,NC]
+RewriteRule ^clientes/home$            /VISTA/clientes/portal/home.php [L,NC]
+RewriteRule ^clientes/perfil$           /VISTA/clientes/portal/perfil.php [L,NC]
+RewriteRule ^clientes/guardarPerfil$    /CONTROLADOR/clientes/guardarPerfil.php [L,NC]
+RewriteRule ^clientes/cambiarPassword$  /VISTA/clientes/portal/cambiarPassword.php [L,NC]
+RewriteRule ^clientes/guardarPassword$  /CONTROLADOR/clientes/guardarPassword.php [L,NC]
 
 #PEDIDOS  
 RewriteRule ^pedidos/reporte$ /VISTA/pedidos/reportes.php [L,NC]
@@ -60,6 +72,11 @@ RewriteRule ^pedidos/finalizarPedido/([a-zA-Z0-9_-]+)$ /CONTROLADOR/pedidos/fina
 #REPORTES
 RewriteRule ^reportes/reportePedidosTotal$ /VISTA/reportes/reportePedidosTotal.php [L,NC]
 RewriteRule ^reportes/reporteClientes$ /VISTA/reportes/reporteClientes.php [L,NC]
+RewriteRule ^pedidos/gestionarRutaRepartos$      /VISTA/pedidos/gestionarRutaRepartos.php [L,NC]
+RewriteRule ^pedidos/nuevaRutaReparto$           /VISTA/pedidos/nuevaRutaReparto.php [L,NC]
+RewriteRule ^pedidos/guardarNuevaRuta$           /CONTROLADOR/pedidos/guardarNuevaRuta.php [L,NC]
+RewriteRule ^pedidos/paradasRuta$                /CONTROLADOR/pedidos/paradasRuta.php [L,NC]
+RewriteRule ^pedidos/eliminarRuta$               /CONTROLADOR/pedidos/eliminarRuta.php [L,NC]
 
 #COBROS
 RewriteRule ^cobros/nuevoCobro$ /VISTA/cobros/nuevoCobro.php [L,NC]
@@ -78,6 +95,13 @@ RewriteRule ^maquinasDispensadoras/nuevaMaquinaDispensadora$ /VISTA/maquinasDisp
 RewriteRule ^maquinasDispensadoras/modificarMaquinaDispensadora/([a-zA-Z0-9_-]+)$ /VISTA/maquinasDispensadoras/modificarMaquina.php?idMaquina=$1 [L,NC]
 RewriteRule ^maquinasDispensadoras/listado$ /VISTA/maquinasDispensadoras/listadoMaquinas.php [L,NC]
 RewriteRule ^maquinasDispensadoras/reportes$ /VISTA/maquinasDispensadoras/reportes.php [L,NC]
+
+#RUTAS
+RewriteRule ^clientes/geocodificarCliente$  /CONTROLADOR/clientes/geocodificarCliente.php [L,NC]
+RewriteRule ^clientes/geocodificarTodos$    /CONTROLADOR/clientes/geocodificarTodos.php [L,NC]
+RewriteRule ^clientes/guardarCoordenadas$   /CONTROLADOR/clientes/guardarCoordenadas.php [L,NC]
+RewriteRule ^pedidos/modificarRutaReparto/([0-9]+)$ /VISTA/pedidos/modificarRutaReparto.php?idRutaReparto=$1 [L,NC]
+RewriteRule ^pedidos/guardarModificacionRuta$        /CONTROLADOR/pedidos/guardarModificacionRuta.php [L,NC]
 
 #SINCRONIZACION
 RewriteRule ^sincronizacion$ /VISTA/sincronizacion.php [L,NC]

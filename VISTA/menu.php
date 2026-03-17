@@ -1,28 +1,8 @@
 <?php
-// Recuperar datos del usuario logueado desde la sesión
-$idEmpleado = $_SESSION['id_empleado'] ?? null;
+// Datos del empleado logueado desde sesión
 $nombreUsuario = $_SESSION['nombre'] ?? 'Usuario';
-$rol = $_SESSION['rol'] ?? null;
-
-// Si hay sesión activa, enriquecer con datos de BD
-if ($idEmpleado) {
-    $stmt = $conexionbd->prepare("
-        SELECT e.nombre, e.apellido, r.nombre AS nombreRol, e.id_rol
-        FROM usuario_empleado e
-        INNER JOIN rol r ON r.id_rol = e.id_rol
-        WHERE e.id_empleado = :id
-    ");
-    $stmt->execute([':id' => $idEmpleado]);
-    $rsUsuario = $stmt->fetch();
-
-    if ($rsUsuario) {
-        $nombreUsuario   = $rsUsuario['nombre'] . ' ' . $rsUsuario['apellido'];
-        $descripcionRol  = $rsUsuario['nombrerol'];
-        $rol             = $rsUsuario['id_rol'];
-    }
-} 
+$rol           = $_SESSION['rol']    ?? 0;
 ?>
-                
 
 <!-- Main Sidebar Container -->
 <aside class="main-sidebar sidebar-dark-primary elevation-4">
@@ -42,9 +22,7 @@ if ($idEmpleado) {
         </div>
         <div class="info">
           <a href="#" class="d-block">
-          <?php
-            echo $nombreUsuario." - ".$descripcionRol;
-          ?>
+          <?php echo $nombreUsuario; ?>
           </a>
         </div>
       </div>
@@ -64,35 +42,25 @@ if ($idEmpleado) {
       <!-- Sidebar Menu -->
       <nav class="mt-2">
         <ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu" data-accordion="false">
-          <!-- Add icons to the links using the .nav-icon class
-               with font-awesome or any other icon font library -->
-         
+
           <li class="nav-header">PEDIDOS</li>
-          <?php
-          if($rol == 2 || $rol == 1){
-            ?> 
-            <li class="nav-item">
-              <a href="/pedidos/gestionarRutaRepartos" class="nav-link">
-                <i class="nav-icon fas fa-map-marked-alt"></i>
-                <p>
-                  Gestionar ruta de reparto
-                </p>
-              </a>
-            </li>
-            <?php   
-          }
-          ?>
+          <?php if($rol == 2 || $rol == 1): ?>
+          <li class="nav-item">
+            <a href="/pedidos/gestionarRutaRepartos" class="nav-link">
+              <i class="nav-icon fas fa-map-marked-alt"></i>
+              <p>Gestionar ruta de reparto</p>
+            </a>
+          </li>
+          <?php endif; ?>
           <li class="nav-item">
             <a href="/pedidos/nuevoPedido" class="nav-link">
               <i class="nav-icon fas fa-plus-square"></i>
-              <p>
-                Nuevo pedido
-              </p>
+              <p>Nuevo pedido</p>
             </a>
           </li>
           <li class="nav-item">
             <a href="/pedidos/listado" class="nav-link">
-            <i class="nav-icon fas fa-list-ul"></i>
+              <i class="nav-icon fas fa-list-ul"></i>
               <p>
                 Listado de pedidos
                 <span class="badge badge-info right">2</span>
@@ -102,14 +70,12 @@ if ($idEmpleado) {
           <li class="nav-item">
             <a href="/cobros/nuevoCobro" class="nav-link">
               <i class="nav-icon fas fa-plus-square"></i>
-              <p>
-                Nuevo cobro
-              </p>
+              <p>Nuevo cobro</p>
             </a>
           </li>
           <li class="nav-item">
             <a href="/cobros/listado" class="nav-link">
-            <i class="nav-icon fas fa-list-ul"></i>
+              <i class="nav-icon fas fa-list-ul"></i>
               <p>
                 Listado de cobros
                 <span class="badge badge-info right">2</span>
@@ -145,44 +111,35 @@ if ($idEmpleado) {
               </p>
             </a>
           </li>
-
+          <?php if($rol == 1): ?>
+          <li class="nav-item">
+            <a href="/clientes/geocodificarTodos" class="nav-link">
+              <i class="nav-icon fas fa-map-marker-alt"></i>
+              <p>Geocodificación</p>
+            </a>
+          </li>
+          <?php endif; ?>
 
           <li class="nav-header">M&Aacute;QUINAS DISPENSADORAS</li>
           <li class="nav-item">
             <a href="/maquinasDispensadoras/nuevoArreglo" class="nav-link">
               <i class="nav-icon fas fa-tools"></i>
+              <p>Nuevo arreglo</p>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="/maquinasDispensadoras/listado" class="nav-link">
+              <i class="nav-icon fas fa-list-ul"></i>
               <p>
-                Nuevo arreglo
+                Listado Máquinas
+                <span class="badge badge-info right">4</span>
               </p>
             </a>
           </li>
           <li class="nav-item">
-              <a href="/maquinasDispensadoras/listado" class="nav-link">
-                <i class="nav-icon fas fa-list-ul"></i>
-                  <p>
-                      Listado Máquinas
-                      <?php
-                      $stmtEnReparacion = $conexionbd->prepare("
-                          SELECT COUNT(*) AS total
-                          FROM maquina_dispensadora m
-                          INNER JOIN estado_maquina e ON e.id_estado = m.id_estado
-                          WHERE e.nombre = 'en_reparacion'
-                      ");
-                      $stmtEnReparacion->execute();
-                      $totalEnReparacion = $stmtEnReparacion->fetch()['total'];
-                      if ($totalEnReparacion > 0):
-                      ?>
-                          <span class="badge badge-warning right"><?= $totalEnReparacion ?></span>
-                      <?php endif; ?>
-                  </p>
-              </a>
-          </li>
-          <li class="nav-item">
             <a href="/maquinasDispensadoras/reportes" class="nav-link">
-              <i class="nav-icon fas fa-tools"></i>
-              <p>
-                Arreglos de Máquinas
-              </p>
+              <i class="nav-icon fas fa-chart-line"></i>
+              <p>Reportes</p>
             </a>
           </li>
 
@@ -190,15 +147,11 @@ if ($idEmpleado) {
           <li class="nav-item">
             <a href="/sincronizacion" class="nav-link">
               <i class="nav-icon fas fa-sync-alt"></i>
-              <p>
-                Sincronizar
-              </p>
+              <p>Sincronizar</p>
             </a>
           </li>
-          
+
         </ul>
       </nav>
-      <!-- /.sidebar-menu -->
     </div>
-    <!-- /.sidebar -->
-  </aside>
+</aside>
