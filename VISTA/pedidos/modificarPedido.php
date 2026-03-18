@@ -105,7 +105,7 @@
 
                     <div class="col-sm-4">
                       <div class="form-group">
-                        <label for="fecha">Fecha</label>
+                        <label for="fecha">Fecha <span class="text-danger">*</span></label>
                         <input type="date" id="fecha" name="fecha" class="form-control form-control-sm"
                                value="<?= date('Y-m-d', strtotime($pedido['fecha_pedido'])) ?>">
                         <div id="error-fecha" class="text-danger small error-msg"></div>
@@ -114,7 +114,7 @@
 
                     <div class="col-sm-4">
                       <div class="form-group">
-                        <label for="cliente">Cliente</label>
+                        <label for="cliente">Cliente <span class="text-danger">*</span></label>
                         <select id="cliente" name="cliente" class="form-control form-control-sm select2" style="width: 100%;">
                           <option value="0">Seleccione el cliente</option>
                           <?php foreach($listaClientes as $c): ?>
@@ -129,7 +129,7 @@
 
                     <div class="col-sm-4">
                       <div class="form-group">
-                        <label for="total">Monto total del pedido</label>
+                        <label for="total">Monto total del pedido <span class="text-danger">*</span></label>
                         <div class="input-group">
                           <div class="input-group-prepend">
                             <span class="input-group-text form-control-sm">$</span>
@@ -152,7 +152,7 @@
                     </div>
                   </div>
 
-                  <label>Productos</label>
+                  <label>Productos <span class="text-danger">*</span></label>
 
                   <div class="col-md-8 card-body p-0">
                     <table id="lista_productos" class="table table-sm" style="border: none;">

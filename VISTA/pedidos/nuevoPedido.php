@@ -90,7 +90,7 @@
                 <div class="row">
                     <div class="col-sm-4">
                       <div class="form-group">
-                        <label for="fecha">Fecha</label>
+                        <label for="fecha">Fecha <span class="text-danger">*</span></label>
                         <input type="date" id="fecha" name="fecha" class="form-control form-control-sm">  
                         <div id="error-fecha" class="text-danger small error-msg"></div>
                       </div>
@@ -98,7 +98,7 @@
 
                     <div class="col-sm-4" data-select2-id="44">
                       <div class="form-group">
-                        <label for="cliente">Cliente</label>
+                        <label for="cliente">Cliente <span class="text-danger">*</span></label>
                         <select id="cliente" name="cliente" class="form-control form-control-sm select2 select2-hidden-accessible" style="width: 100%;" data-select2-id="1" tabindex="-1" aria-hidden="true">
                               <option value="0">Seleccione el cliente</option>
                               <?php
@@ -124,7 +124,7 @@
                     
                     <div class="col-sm-4">
                       <div class="form-group">
-                        <label for="total">Monto total del pedido</label>
+                        <label for="total">Monto total del pedido <span class="text-danger">*</span></label>
                         <div class="input-group">
                           <div class="input-group-prepend">
                               <span class="input-group-text form-control-sm" id="basic-addon1">$</span>
@@ -150,7 +150,7 @@
                   </div>
 
 
-                <label for="productos">Productos</label>
+                <label for="productos">Productos  <span class="text-danger">*</span></label>
  
                 <div class="col-md-8 card-body p-0">
                     <table id="lista_productos" class="table table-sm" style="border: none;"> 

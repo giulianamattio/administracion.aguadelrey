@@ -67,10 +67,10 @@ $rol           = $_SESSION['rol']    ?? 0;
               </p>
             </a>
           </li>
-          <li class="nav-item">
+          <!--<li class="nav-item">
             <a href="/cobros/nuevoCobro" class="nav-link">
               <i class="nav-icon fas fa-plus-square"></i>
-              <p>Nuevo cobro</p>
+              <p>Nueva visita de cobro</p>
             </a>
           </li>
           <li class="nav-item">
@@ -81,25 +81,45 @@ $rol           = $_SESSION['rol']    ?? 0;
                 <span class="badge badge-info right">2</span>
               </p>
             </a>
-          </li>
+          </li>-->
           
 
           <li class="nav-header">REPORTES</li>
           <li class="nav-item">
             <a href="/reportes/reportePedidosTotal" class="nav-link">
-              <i class="nav-icon fas fa-chart-line"></i>
+              <i class="nav-icon fas fa-calendar-alt"></i>
               <p>
                 Pedidos por período
               </p>
             </a>
           </li><li class="nav-item">
             <a href="/reportes/reporteClientes" class="nav-link">
-              <i class="nav-icon fas fa-chart-line"></i>
+              <i class="nav-icon fas fa-users"></i>
               <p>
                 Pedidos por cliente
               </p>
             </a>
           </li>
+          <li class="nav-item">
+            <a href="/reportes/reporteSeguimientoClientes" class="nav-link">
+              <i class="nav-icon fas fa-bell"></i>
+              <p>
+                Seguimiento de clientes
+              </p>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="/reportes/reporteProductosMasVendidos" class="nav-link">
+              <i class="nav-icon fas fa-chart-pie"></i>
+              <p>
+                Productos más vendidos
+              </p>
+            </a>
+          </li>
+
+          
+
+          
 
           <li class="nav-header">CLIENTES</li>
           <li class="nav-item">

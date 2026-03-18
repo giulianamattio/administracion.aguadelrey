@@ -72,6 +72,9 @@ RewriteRule ^pedidos/finalizarPedido/([a-zA-Z0-9_-]+)$ /CONTROLADOR/pedidos/fina
 #REPORTES
 RewriteRule ^reportes/reportePedidosTotal$ /VISTA/reportes/reportePedidosTotal.php [L,NC]
 RewriteRule ^reportes/reporteClientes$ /VISTA/reportes/reporteClientes.php [L,NC]
+RewriteRule ^reportes/reporteSeguimientoClientes$ /VISTA/reportes/reporteSeguimientoClientes.php [L,NC]
+RewriteRule ^reportes/reporteProductosMasVendidos$ /VISTA/reportes/reporteProductosMasVendidos.php [L,NC]
+
 RewriteRule ^pedidos/gestionarRutaRepartos$      /VISTA/pedidos/gestionarRutaRepartos.php [L,NC]
 RewriteRule ^pedidos/nuevaRutaReparto$           /VISTA/pedidos/nuevaRutaReparto.php [L,NC]
 RewriteRule ^pedidos/guardarNuevaRuta$           /CONTROLADOR/pedidos/guardarNuevaRuta.php [L,NC]
