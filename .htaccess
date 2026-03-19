@@ -64,8 +64,18 @@ RewriteRule ^pedidos/gestionarRutaRepartos$ /VISTA/pedidos/gestionarRutaRepartos
 RewriteRule ^pedidos/modificarRutaReparto/([a-zA-Z0-9_-]+)$ /VISTA/pedidos/modificarRutaReparto.php?idRutaReparto=$1 [L,NC]
 RewriteRule ^pedidos/nuevaRutaReparto$ /VISTA/pedidos/nuevaRutaReparto.php [L,NC]
 RewriteRule ^pedidos/nuevoPedido$ /VISTA/pedidos/nuevoPedido.php [L,NC]
-RewriteRule ^pedidos/modificarPedido/([a-zA-Z0-9_-]+)$ /VISTA/pedidos/modificarPedido.php?idPedido=$1 [L,NC]
+RewriteRule ^pedidos/modificarPedido/([a-zA-Z0-9_-]+)$ /VISTA/pedidos/modificarPedido.php?id=$1 [L,NC]
 RewriteRule ^pedidos/listado$ /VISTA/pedidos/listadoPedidos.php [L,NC]
+RewriteRule ^pedidos/eliminarpedido/([a-zA-Z0-9_-]+)$ /CONTROLADOR/pedidos/eliminarPedido.php?id=$1 [L,NC]
+RewriteRule ^pedidos/finalizarPedido/([a-zA-Z0-9_-]+)$ /CONTROLADOR/pedidos/finalizarPedido.php?id=$1 [L,NC]
+
+#REPORTES
+RewriteRule ^reportes/reportePedidosTotal$ /VISTA/reportes/reportePedidosTotal.php [L,NC]
+RewriteRule ^reportes/reporteClientes$ /VISTA/reportes/reporteClientes.php [L,NC]
+RewriteRule ^reportes/reporteSeguimientoClientes$ /VISTA/reportes/reporteSeguimientoClientes.php [L,NC]
+RewriteRule ^reportes/reporteProductosMasVendidos$ /VISTA/reportes/reporteProductosMasVendidos.php [L,NC]
+RewriteRule ^reportes/reporteMaquinasDispensadoras$ /VISTA/reportes/reporteMaquinasDispensadoras.php [L,NC]
+
 RewriteRule ^pedidos/gestionarRutaRepartos$      /VISTA/pedidos/gestionarRutaRepartos.php [L,NC]
 RewriteRule ^pedidos/nuevaRutaReparto$           /VISTA/pedidos/nuevaRutaReparto.php [L,NC]
 RewriteRule ^pedidos/guardarNuevaRuta$           /CONTROLADOR/pedidos/guardarNuevaRuta.php [L,NC]

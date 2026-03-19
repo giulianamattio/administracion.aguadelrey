@@ -55,6 +55,33 @@
                 </div>
               <!-- /.card-header -->
               <div class="card-body">
+
+              <?php if (isset($_GET['exito']) && $_GET['exito'] === 'eliminado'): ?>
+                  <div class="alert alert-success alert-dismissible fade show" role="alert">
+                      <strong>✅ Éxito:</strong> El pedido fue eliminado correctamente.
+                      <button type="button" class="close" data-dismiss="alert">
+                          <span>&times;</span>
+                      </button>
+                  </div>
+              <?php endif; ?>
+
+
+              <?php if (isset($_GET['exito']) && $_GET['exito'] === 'finalizado'): ?>
+                  <div class="alert alert-success alert-dismissible fade show" role="alert">
+                      <strong>✅ Éxito:</strong> El pedido fue marcado como entregado.
+                      <button type="button" class="close" data-dismiss="alert">
+                          <span>&times;</span>
+                      </button>
+                  </div>
+              <?php endif; ?>
+
+              <?php if (isset($_GET['exito']) && $_GET['exito'] === 'modificado'): ?>
+                <div class="alert alert-success alert-dismissible fade show" role="alert">
+                    <strong>✅ Éxito:</strong> El pedido fue modificado correctamente.
+                    <button type="button" class="close" data-dismiss="alert"><span>&times;</span></button>
+                </div>
+            <?php endif; ?>
+
                 <table class="table table-bordered">
                   <thead>
                     <tr>
@@ -63,141 +90,155 @@
                       <th>Cliente</th>
                       <th>Productos</th>
                       <th>Origen</th>
-                      <th>Receptor</th>
                       <th>Monto</th>
                       <th>Estado</th>
                       <th>Acciones</th>
                     </tr>
                   </thead>
-                  <tbody>
+                  <tbody id="tablaPedidos">
+
+                  <?php 
+                  $porPagina = 15;
+                  $pagActual = isset($_GET['pagina']) ? max(1, (int)$_GET['pagina']) : 1;
+                  $offset    = ($pagActual - 1) * $porPagina;
+
+                  // Total de registros para calcular páginas
+                  $stmtTotal = $conexionbd->query("SELECT COUNT(*) FROM pedido WHERE fecha_baja IS NULL");
+                  $totalPedidos = $stmtTotal->fetchColumn();
+                  $totalPaginas = ceil($totalPedidos / $porPagina);
+
+                  $stmt = $conexionbd->prepare("SELECT p.id_pedido, p.id_estado, p.fecha_pedido, c.nombre, c.apellido, 
+                  ep.nombre AS estado, p.total, oip.nombre AS origen
+                  FROM pedido p
+                  INNER JOIN cliente c ON c.id_cliente = p.id_cliente
+                  INNER JOIN estado_pedido ep ON ep.id_estado = p.id_estado
+                  LEFT JOIN origen_ingreso_pedido oip ON oip.id_origen_ingreso = p.id_origen_pedido
+                  ORDER BY p.id_pedido DESC
+                  LIMIT :limite OFFSET :offset");
+                  $stmt->bindValue(':limite', $porPagina, PDO::PARAM_INT);
+                  $stmt->bindValue(':offset', $offset,    PDO::PARAM_INT);
+                  $stmt->execute();
+                  $listaPedidos = $stmt->fetchAll();
+                  foreach($listaPedidos as $rsPedidos){
+                    $idPedido = $rsPedidos["id_pedido"];
+                    $fecha = $rsPedidos["fecha_pedido"];
+                    $cliente = $rsPedidos["nombre"]." ".$rsPedidos["apellido"];
+                    $estado = $rsPedidos["estado"];
+                    $idEstado = $rsPedidos["id_estado"];
+                    $total = $rsPedidos["total"];
+                    $origen = $rsPedidos["origen"];
+                    ?>
+                    <tr>
+                      <td style="width: 10px"><?=$idPedido?></td>
+                      <td><?=date('d/m/Y', strtotime($fecha))?></td>
+                      <td><?=$cliente?></td>
+                      <td>
+                        <ul style="list-style-type: none;">
+                          <?php
+                          $stmtProductosPedidos = $conexionbd->prepare("SELECT p.nombre AS producto, pp.cantidad
+                              FROM pedido_producto pp 
+                              INNER JOIN producto p ON p.id_producto = pp.id_producto
+                              WHERE pp.fecha_baja IS NULL AND pp.id_pedido= ".$idPedido);
+                          $stmtProductosPedidos->execute();
+                          $listaProductosPedidos = $stmtProductosPedidos->fetchAll();
+                          foreach($listaProductosPedidos as $rsProductosPedidos){
+                            $producto = $rsProductosPedidos["producto"];
+                            $cantidad = $rsProductosPedidos["cantidad"];
+                            ?>
+                            <li><?=$cantidad." ".$producto?></li>
+                            <?php
+                          }
+                          ?>
+                        </ul>
+                      </td>
+                      <td><?= $origen  ?></td>
+                      <td>
+                          <b>Total: </b> $<?= $total ?><br/>
+                      </td>
+                      <td>
+                      <?php
+                      switch ($idEstado) {
+                          case 1: //Pendiente
+                              ?> <span class="badge badge-warning"><?= $estado?></span><?php
+                              break;
+                          case 2: //En ruta
+                              ?> <span class="badge badge-primary"><?= $estado?></span><?php
+                              break;
+                          case 3: //Entregado
+                              ?><span class="badge badge-success"><?= $estado?></span> <?php
+                              break;
+                          case 4: //Cancelado
+                              ?> <span class="badge badge-danger"><?=$estado ?></span> <?php
+                              break;
+                          default:
+                          ?>
+                              <span></span> <?php
+                      }?>
+                      
                     
-                  <tr>
-                      <td style="width: 10px">13</td>
-                      <td>20/08/2021</td>
-                      <td>Eduardo Fernández</td>
+                    </td>
                       <td>
-                        <ul>
-                          <li>2 Bidón 20 litros</li>
-                          <li>4 Cajas café</li>
-                        </ul>
-                      </td>
-                      <td>Web</td>
-                      <td>35698256</td>
-                      <td>
-                          <b>Total: </b> $1.500<br/>
-                      </td>
-                      <td><span class="badge badge-danger">Cancelado</span></td>
-                      <td>
-                        <!--<i class="fas fa-minus-square fa-lg " style="color: #dc3545;"></i>
-                        &nbsp;
-                        <a href="/pedidos/modificarPedido/1">
-                          <i class="fas fa-pen-square fa-lg" style="color: #ffc107;"></i>
-                        </a>-->
-                      </td>
-                    </tr>
-
-                    <tr>
-                        <td style="width: 10px">12</td>
-                      <td>07/08/2021</td>
-                      <td>María Gómez</td>
-                      <td>
-                        <ul>
-                          <li>1 Bidón 10 litros</li>
-                        </ul>
-                      </td>
-                      <td>Llamada telefónica</td>
-                      <td>20355698</td>
-                      <td>
-                          <b>Total: </b> $500<br/>
-                      </td>
-                      <td><span class="badge badge-warning">Pendiente</span></td>
-                      <td>
-                        <i class="fas fa-minus-square fa-lg " style="color: #dc3545;"></i>
-                        &nbsp;
-                        <a href="/pedidos/modificarPedido/1">
-                          <i class="fas fa-pen-square fa-lg" style="color: #ffc107;"></i>
-                        </a>
+                        <?php
+                        if($idEstado == 1 ){
+                          ?>
+                          <button type="button" class="btn btn-link p-0" 
+                              data-toggle="modal" 
+                              data-target="#modalEliminar" 
+                              data-id="<?= $idPedido ?>">
+                              <i class="fas fa-minus-square fa-lg" style="color: #dc3545;"></i>
+                          </button>
+                          &nbsp;
+                        <?php
+                        }if($idEstado == 1  || $idEstado == 2 ){
+                        ?>
+                          <button type="button" class="btn btn-link p-0" 
+                              data-toggle="modal" 
+                              data-target="#modalFinalizar" 
+                              data-id="<?= $idPedido ?>">
+                              <i class="fas fa-check-square fa-lg" style="color: #28a745;"></i>
+                          </button>
+                          &nbsp;
+                        <?php
+                        }if($idEstado == 1 ){
+                          ?>  
+                            <a href="/pedidos/modificarPedido/<?=$idPedido  ?>">
+                              <i class="fas fa-pen-square fa-lg" style="color: #ffc107;"></i>
+                            </a>
+                          <?php
+                        }
+                        ?>
                       </td>
                     </tr>
 
-
-                    <tr>
-                        <td style="width: 10px">11</td>
-                      <td>27/07/2021</td>
-                      <td>Eduardo Fernández</td>
-                      <td>
-                        <ul>
-                          <li>2 Bidón 20 litros</li>
-                          <li>4 Cajas café</li>
-                        </ul>
-                      </td>
-                      <td>Web</td>
-                      <td>35698256</td>
-                      <td>
-                          <b>Total: </b> $1.500<br/>
-                          <b>Recibido: </b> $1.200
-                      </td>
-                      <td><span class="badge badge-success">Entregado</span></td>
-                      <td>
-                      </td>
-                    </tr>
-
-
-                    <tr>
-                        <td style="width: 10px">10</td>
-                      <td>01/07/2021</td>
-                      <td>Ricardo Cabrera</td>
-                      <td>
-                        <b>Pedido:</b>
-                        <ul>
-                          <li>1 Bidón 10 litros</li>
-                        </ul>
-                        
-                        <b>Entregado:</b>
-                        <ul>
-                          <li>2 Bidón 10 litros</li>
-                        </ul>
-                      </td>
-                      <td>Whatsapp</td>
-                      <td>25345698</td>
-                      <td>
-                          <b>Total: </b> $500<br/>
-                          <b>Recibido: </b> $1000
-                      </td>
-                      <td><span class="badge badge-success">Entregado</span></td>
-                      <td>
-                      </td>
-                    </tr>
+                    <?php
+                  }
+                  ?>  
                     
                   </tbody>
                 </table>
 
-
-
-                <?php
-
-/*require_once '/MODELO/clienteClass.php';
-$cliente = cliente::buscarCliente(1);
-if($cliente){
-   echo $cliente->getNombreCompleto();
-   echo '<br />';
-   echo $cliente->getDescripcion();
-}else{
-   echo 'El cliente no ha podido ser encontrado';
-}*/
-
-                ?>
               </div>
               <!-- /.card-body -->
+
               <div class="card-footer clearfix">
-                <ul class="pagination pagination-sm m-0 float-right">
-                  <li class="page-item"><a class="page-link" href="#">&laquo;</a></li>
-                  <li class="page-item"><a class="page-link" href="#">1</a></li>
-                  <li class="page-item"><a class="page-link" href="#">2</a></li>
-                  <li class="page-item"><a class="page-link" href="#">3</a></li>
-                  <li class="page-item"><a class="page-link" href="#">&raquo;</a></li>
+                <small class="text-muted">
+                  Mostrando <?= min($offset + 1, $totalPedidos) ?>–<?= min($offset + $porPagina, $totalPedidos) ?> de <?= $totalPedidos ?> pedidos
+                </small>
+                <ul class="pagination pagination-sm m-0 float-right" id="paginacion">
+                  <li class="page-item <?= $pagActual <= 1 ? 'disabled' : '' ?>">
+                    <a class="page-link" href="#" data-pagina="<?= $pagActual - 1 ?>">&laquo;</a>
+                  </li>
+                  <?php for ($p = 1; $p <= $totalPaginas; $p++): ?>
+                    <li class="page-item <?= $p === $pagActual ? 'active' : '' ?>">
+                      <a class="page-link" href="#" data-pagina="<?= $p ?>"><?= $p ?></a>
+                    </li>
+                  <?php endfor; ?>
+                  <li class="page-item <?= $pagActual >= $totalPaginas ? 'disabled' : '' ?>">
+                    <a class="page-link" href="#" data-pagina="<?= $pagActual + 1 ?>">&raquo;</a>
+                  </li>
                 </ul>
               </div>
+
             </div>
             <!-- /.card -->
 
@@ -212,6 +253,53 @@ if($cliente){
   </div>
 
 
+  <!-- Modal Confirmar Eliminación -->
+<div class="modal fade" id="modalEliminar" tabindex="-1" role="dialog">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header bg-danger text-white">
+        <h5 class="modal-title">⚠️ Confirmar cancelación</h5>
+        <button type="button" class="close text-white" data-dismiss="modal">
+          <span>&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        ¿Estás seguro que querés Cancelar el pedido <strong>#<span id="modalIdPedido"></span></strong>? Esta acción no se puede deshacer.
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+        <a href="#" id="btnConfirmarEliminar" class="btn btn-danger">Sí, eliminar</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+
+
+<!-- Modal Confirmar Finalización -->
+<div class="modal fade" id="modalFinalizar" tabindex="-1" role="dialog">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header bg-success text-white">
+        <h5 class="modal-title">✅ Confirmar finalización</h5>
+        <button type="button" class="close text-white" data-dismiss="modal">
+          <span>&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        ¿Confirmás que el pedido <strong>#<span id="modalIdFinalizar"></span></strong> fue entregado?
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+        <a href="#" id="btnConfirmarFinalizar" class="btn btn-success">Sí, finalizar</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+
   <?php 
     require($_SERVER["DOCUMENT_ROOT"].'/VISTA/footer.php');
   ?>
@@ -223,6 +311,44 @@ if($cliente){
 <?php 
   require($_SERVER["DOCUMENT_ROOT"].'/VISTA/script/scriptGeneral.php');
 ?>
+
+
+<script>
+  $('#modalEliminar').on('show.bs.modal', function (event) {
+    var button = $(event.relatedTarget);
+    var idPedido = button.data('id');
+    $('#modalIdPedido').text(idPedido);
+    $('#btnConfirmarEliminar').attr('href', '/pedidos/eliminarPedido/' + idPedido);
+  });
+
+
+
+  $('#modalFinalizar').on('show.bs.modal', function (event) {
+    var button = $(event.relatedTarget);
+    var idPedido = button.data('id');
+    $('#modalIdFinalizar').text(idPedido);
+    $('#btnConfirmarFinalizar').attr('href', '/pedidos/finalizarPedido/' + idPedido);
+});
+
+
+
+// Paginado AJAX
+$(document).on('click', '#paginacion .page-link', function(e) {
+    e.preventDefault();
+
+    var $item = $(this).closest('.page-item');
+    if ($item.hasClass('disabled') || $item.hasClass('active')) return;
+
+    var pagina = $(this).data('pagina');
+
+    $.get(window.location.pathname, { pagina: pagina }, function(response) {
+        var $nuevo = $(response);
+        $('#tablaPedidos').html($nuevo.find('#tablaPedidos').html());
+        $('#paginacion').replaceWith($nuevo.find('#paginacion'));
+        $('#infoPaginacion').replaceWith($nuevo.find('#infoPaginacion'));
+    });
+});
+</script>
 
 </body>
 </html>

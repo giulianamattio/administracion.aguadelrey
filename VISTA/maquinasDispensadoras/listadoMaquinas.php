@@ -89,7 +89,7 @@
                       <th>Acciones</th>
                     </tr>
                   </thead>
-                    <tbody>
+                    <tbody id="tablaMaquinas">
                     <?php if (count($listadoMaquinas) > 0): ?>
                         <?php foreach ($listadoMaquinas as $maquina): ?>
                         <tr>
@@ -116,12 +116,18 @@
                                     <i class="fas fa-pen-square fa-lg" style="color: #ffc107;" title="Modificar"></i>
                                 </a>
                                 &nbsp;
+                                <?php
+                                if ($maquina['estado'] != "baja"){
+                                ?>
                                   <a href="#" 
                                     class="btn-baja"
                                     data-id="<?= $maquina['id_maquina'] ?>"
                                     title="Dar de baja">
                                       <i class="fas fa-minus-square fa-lg" style="color: #dc3545;"></i>
                                   </a>  
+                                  <?php
+                                  }
+                                  ?>
                             </td>
                         </tr>
                         <?php endforeach; ?>
@@ -135,14 +141,25 @@
               </div>
               <!-- /.card-body -->
               <div class="card-footer clearfix">
-                <ul class="pagination pagination-sm m-0 float-right">
-                  <li class="page-item"><a class="page-link" href="#">&laquo;</a></li>
-                  <li class="page-item"><a class="page-link" href="#">1</a></li>
-                  <li class="page-item"><a class="page-link" href="#">2</a></li>
-                  <li class="page-item"><a class="page-link" href="#">3</a></li>
-                  <li class="page-item"><a class="page-link" href="#">&raquo;</a></li>
+                <small id="infoMaquinas" class="text-muted">
+                  Mostrando <?= min($offset + 1, $totalMaquinas) ?>–<?= min($offset + $porPagina, $totalMaquinas) ?> de <?= $totalMaquinas ?> máquinas
+                </small>
+                <ul class="pagination pagination-sm m-0 float-right" id="paginacion">
+                  <li class="page-item <?= $pagActual <= 1 ? 'disabled' : '' ?>">
+                    <a class="page-link" href="#" data-pagina="<?= $pagActual - 1 ?>">&laquo;</a>
+                  </li>
+                  <?php for ($p = 1; $p <= $totalPaginas; $p++): ?>
+                    <li class="page-item <?= $p === $pagActual ? 'active' : '' ?>">
+                      <a class="page-link" href="#" data-pagina="<?= $p ?>"><?= $p ?></a>
+                    </li>
+                  <?php endfor; ?>
+                  <li class="page-item <?= $pagActual >= $totalPaginas ? 'disabled' : '' ?>">
+                    <a class="page-link" href="#" data-pagina="<?= $pagActual + 1 ?>">&raquo;</a>
+                  </li>
                 </ul>
               </div>
+
+
             </div>
             <!-- /.card -->
 
@@ -177,6 +194,32 @@ document.querySelectorAll('.btn-baja').forEach(function(btn) {
             window.location.href = '/maquinasDispensadoras/bajaMaquina/' + id;
         }
     });
+});
+
+
+
+
+// Paginado AJAX
+$(document).on('click', '#paginacion .page-link', function(e) {
+    e.preventDefault();
+
+    var $item = $(this).closest('.page-item');
+    if ($item.hasClass('disabled') || $item.hasClass('active')) return;
+
+    var pagina  = $(this).data('pagina');
+    var estado  = $('select[name="estado"]').val();
+
+    $.get(window.location.pathname, { pagina: pagina, estado: estado }, function(response) {
+        var $nuevo = $(response);
+        $('#tablaMaquinas').html($nuevo.find('#tablaMaquinas').html());
+        $('#paginacion').replaceWith($nuevo.find('#paginacion'));
+        $('#infoMaquinas').replaceWith($nuevo.find('#infoMaquinas'));
+    });
+});
+
+// Resetear a página 1 al cambiar el filtro de estado
+$('select[name="estado"]').on('change', function() {
+    this.form.submit();
 });
 </script>
 </body>

@@ -1,4 +1,6 @@
 <?php
+
+//require_once __DIR__ . '/env.php';
 // ============================================================
 //  configuraciones/conexionBD.php
 // ============================================================
@@ -22,3 +24,5 @@ try {
     // TEMPORAL — solo para diagnosticar, sacar antes de producción
     die('ERROR CONEXION: ' . $e->getMessage());
 }
+
+?>
