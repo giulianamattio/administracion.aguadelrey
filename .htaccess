@@ -115,6 +115,9 @@ RewriteRule ^login$ /login.php [L,NC]
 RewriteRule ^contenidos/([a-zA-Z0-9_-]+)$ /contenidos/contenido.php?identificador=$1 [L,NC]
 RewriteRule ^contenidos/([a-zA-Z0-9_-]+)/pagina/([0-9]+)$ /contenidos/contenido.php?identificador=$1&pagina=$2 [L,NC]
 
+#API REST
+RewriteRule ^api/login$   /api/login.php [L,NC]
+
 
 #recuperar contrasenia
 RewriteRule ^recuperar_contrasenia$  /subsitios/usuarios/recuperar_contrasenia.php [L,NC]
