@@ -117,6 +117,7 @@ RewriteRule ^contenidos/([a-zA-Z0-9_-]+)/pagina/([0-9]+)$ /contenidos/contenido.
 
 #API REST
 RewriteRule ^api/login$   /api/login.php [L,NC]
+RewriteRule ^api/rutas$    /api/rutas.php [L,NC]
 
 
 #recuperar contrasenia
