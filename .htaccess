@@ -37,7 +37,6 @@ RewriteRule ^(.*)$ index.php [F,L]
 # TUTORIAL http://perlenespanol.com/articulos/archivo/000180.html
 
 #inicio
-RewriteRule ^diagnostico_composer$ /VISTA/diagnostico_composer.php [L,NC]
 RewriteRule ^index$ /index.php [L,NC]
 RewriteRule ^principal$ /principal.php [L,NC]
 RewriteRule ^index/([a-zA-Z0-9_-]+)$ /index.php?error=$1 [L,NC]
