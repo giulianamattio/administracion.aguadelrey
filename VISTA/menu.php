@@ -63,7 +63,6 @@ $rol           = $_SESSION['rol']    ?? 0;
               <i class="nav-icon fas fa-list-ul"></i>
               <p>
                 Listado de pedidos
-                <span class="badge badge-info right">2</span>
               </p>
             </a>
           </li>
@@ -116,6 +115,12 @@ $rol           = $_SESSION['rol']    ?? 0;
               </p>
             </a>
           </li>
+          <li class="nav-item">
+            <a href="/reportes/reporteMaquinasDispensadoras" class="nav-link">
+              <i class="nav-icon fas fa-chart-line"></i>
+              <p>Maquinas dispensadoras</p>
+            </a>
+          </li>
 
           
 
@@ -127,7 +132,7 @@ $rol           = $_SESSION['rol']    ?? 0;
               <i class="nav-icon fas fa-list-ul"></i>
               <p>
                 Lista de espera
-                <span class="badge badge-info right">4</span>
+                <!--<span class="badge badge-info right">4</span>-->
               </p>
             </a>
           </li>
@@ -152,14 +157,8 @@ $rol           = $_SESSION['rol']    ?? 0;
               <i class="nav-icon fas fa-list-ul"></i>
               <p>
                 Listado Máquinas
-                <span class="badge badge-info right">4</span>
+                <!--<span class="badge badge-info right">4</span>-->
               </p>
-            </a>
-          </li>
-          <li class="nav-item">
-            <a href="/maquinasDispensadoras/reportes" class="nav-link">
-              <i class="nav-icon fas fa-chart-line"></i>
-              <p>Reportes</p>
             </a>
           </li>
 

@@ -4,7 +4,7 @@
 // ============================================================
 ob_start();
 
-r//equire_once($_SERVER['DOCUMENT_ROOT'] . '/configuraciones/env.php');  
+//require_once($_SERVER['DOCUMENT_ROOT'] . '/configuraciones/env.php');  
 
 require_once($_SERVER['DOCUMENT_ROOT'] . '/configuraciones/session.php');
 require_once($_SERVER['DOCUMENT_ROOT'] . '/configuraciones/conexionBD.php');
