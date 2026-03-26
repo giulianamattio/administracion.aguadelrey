@@ -22,6 +22,8 @@ RewriteRule ^(.*)$ index.php [F,L]
 #API REST — debe ir primero para que no sea interceptada por otras reglas
 RewriteRule ^api/login$   /api/login.php [L,NC]
 RewriteRule ^api/rutas$   /api/rutas.php [L,NC]
+RewriteRule ^api/entrega$   /api/entrega.php [L,NC]
+RewriteRule ^api/pedido$   /api/pedido.php [L,NC]
 
 RewriteRule ^index$ /index.php [L,NC]
 RewriteRule ^principal$ /principal.php [L,NC]

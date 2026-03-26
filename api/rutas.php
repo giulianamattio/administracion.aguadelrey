@@ -54,12 +54,15 @@ if ($idRol == 1) {
 $rutasDB = $stmtRutas->fetchAll();
 
 // Para cada ruta traer sus paradas ordenadas
+// CAMBIO: se agrega c.id_cliente al SELECT para que la app móvil
+// pueda identificar al cliente sin hacer una consulta adicional.
 $stmtParadas = $conexionbd->prepare("
     SELECT
         pr.id_parada,
         pr.orden,
         p.id_pedido,
         p.observaciones_cliente,
+        c.id_cliente,
         c.nombre,
         c.apellido,
         c.domicilio,
@@ -80,26 +83,28 @@ foreach ($rutasDB as $ruta) {
     $paradas = [];
     foreach ($paradasDB as $p) {
         $paradas[] = [
-            'id'                  => (string)$p['id_parada'],
-            'id_pedido'           => (int)$p['id_pedido'],
-            'orden'               => (int)$p['orden'],
-            'clientDescription'   => $p['nombre'] . ' ' . $p['apellido'],
-            'address'             => $p['domicilio'] . ', ' . $p['localidad'],
-            'telefono'            => $p['telefono'] ?? '',
-            'observaciones'       => $p['observaciones_cliente'] ?? '',
+            'id'                => (string)$p['id_parada'],
+            'id_pedido'         => (int)$p['id_pedido'],
+            'id_cliente'        => (int)$p['id_cliente'],   // ← NUEVO
+            'orden'             => (int)$p['orden'],
+            'clientDescription' => $p['nombre'] . ' ' . $p['apellido'],
+            'address'           => $p['domicilio'] . ', ' . $p['localidad'],
+            'telefono'          => $p['telefono'] ?? '',
+            'observaciones'     => $p['observaciones_cliente'] ?? '',
         ];
     }
 
     $rutas[] = [
-        'id'      => (string)$ruta['id_ruta'],
-        'nombre'  => 'Ruta ' . ucfirst($ruta['turno']) . ' — ' . date('d/m/Y', strtotime($ruta['fecha_planificada'])),
-        'fecha'   => date('d/m/Y', strtotime($ruta['fecha_planificada'])),
-        'turno'   => $ruta['turno'],
-        'estado'  => $ruta['estado'],
-        'repartidor' => $ruta['repartidor'],
-        'observaciones' => $ruta['observaciones'] ?? '',
-        'paradas' => $paradas,
+        'id'           => (string)$ruta['id_ruta'],
+        'nombre'       => 'Ruta ' . ucfirst($ruta['turno']) . ' — ' . date('d/m/Y', strtotime($ruta['fecha_planificada'])),
+        'fecha'        => date('d/m/Y', strtotime($ruta['fecha_planificada'])),
+        'turno'        => $ruta['turno'],
+        'estado'       => $ruta['estado'],
+        'repartidor'   => $ruta['repartidor'],
+        'observaciones'=> $ruta['observaciones'] ?? '',
+        'paradas'      => $paradas,
     ];
 }
 
 apiOk(['rutas' => $rutas]);
+
