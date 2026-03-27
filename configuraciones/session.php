@@ -5,6 +5,10 @@
 //  todos los procesos del contenedor en Render.
 // ============================================================
 
+// Guard completo: si la sesión ya está activa o en proceso, no hacer nada.
+// Decisión: el guard original solo cubría session_start() pero
+// session_set_save_handler() también falla si los headers ya se enviaron.
+// Movemos el return ANTES de registrar el handler para evitar ambos errores.
 if (session_status() !== PHP_SESSION_NONE) {
     return;
 }
@@ -16,7 +20,7 @@ function _session_pdo(): PDO {
                ";port=" . (getenv('DB_PORT') ?: '5432') .
                ";dbname=" . getenv('DB_NAME') .
                ";sslmode=require";
-        $pdo = new PDO($dsn, getenv('DB_USER'), getenv('DB_PASSWORD'), [
+        $pdo = new PDO($dsn, getenv('DB_HOST'), getenv('DB_PASSWORD'), [
             PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
         ]);
         $pdo->exec("CREATE TABLE IF NOT EXISTS php_sessions (

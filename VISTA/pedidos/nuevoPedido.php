@@ -1,3 +1,7 @@
+<?php 
+  require($_SERVER["DOCUMENT_ROOT"].'/configuraciones/inicializacion.php');
+  require($_SERVER["DOCUMENT_ROOT"].'/VISTA/css/cssGeneral.php');
+?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -9,11 +13,6 @@
   <title>Agua del Rey | <?php echo $pagina; ?></title>
 
   <link rel="Agua del rey" href="/favicon.ico">
-  <?php 
-  require($_SERVER["DOCUMENT_ROOT"].'/configuraciones/inicializacion.php');
-  require($_SERVER["DOCUMENT_ROOT"].'/VISTA/css/cssGeneral.php');
-  ?>
-
   <link rel="stylesheet" href="/plugins/select2/css/select2.min.css">
   <link rel="stylesheet" href="/plugins/select2-bootstrap4-theme/select2-bootstrap4.min.css">
 
