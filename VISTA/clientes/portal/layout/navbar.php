@@ -42,7 +42,10 @@
           <a class="dropdown-item" href="/clientes/misPedidos">
             <i class="fas fa-list-alt mr-2 text-muted"></i> Mis pedidos
           </a>
-          <a class="dropdown-item" href="/clientes/estadisticas">
+          <a class="dropdown-item" href="/clientes/nuevoPedido">
+            <i class="fas fa-plus-circle mr-2 text-muted"></i> Nuevo pedido
+          </a>
+          <a class="dropdown-item" href="/clientes/misestadisticas">
             <i class="fas fa-chart-line mr-2 text-muted"></i> Estadísticas
           </a>
           <div class="dropdown-divider"></div>

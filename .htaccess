@@ -54,9 +54,19 @@ RewriteRule ^clientes/procesarLogin$   /CONTROLADOR/clientes/procesarLogin.php [
 RewriteRule ^clientes/logout$          /CONTROLADOR/clientes/logout.php [L,NC]
 RewriteRule ^clientes/home$            /VISTA/clientes/portal/home.php [L,NC]
 RewriteRule ^clientes/perfil$           /VISTA/clientes/portal/perfil.php [L,NC]
+RewriteRule ^clientes/mispedidos$           /VISTA/clientes/portal/mispedidos.php [L,NC]
+RewriteRule ^clientes/nuevoPedido$           /VISTA/clientes/portal/nuevoPedidoPortal.php [L,NC]
+RewriteRule ^clientes/cancelarPedido/([a-zA-Z0-9_-]+)$ /CONTROLADOR/clientes/cancelarPedido.php?id=$1 [L,NC]
+RewriteRule ^clientes/modificarPedidoPortal/([a-zA-Z0-9_-]+)$ /VISTA/clientes/portal/modificarPedidoPortal.php?id=$1 [L,NC]
+RewriteRule ^clientes/guardarModificacionPedidoPortal$    /CONTROLADOR/clientes/guardarModificacionPedidoPortal.php [L,NC]
+RewriteRule ^clientes/misEstadisticas$    /VISTA/clientes/portal/misEstadisticas.php [L,NC]
+
+RewriteRule ^clientes/guardarPedidoPortal$     /CONTROLADOR/clientes/guardarPedidoPortal.php [L,NC]
 RewriteRule ^clientes/guardarPerfil$    /CONTROLADOR/clientes/guardarPerfil.php [L,NC]
 RewriteRule ^clientes/cambiarPassword$  /VISTA/clientes/portal/cambiarPassword.php [L,NC]
 RewriteRule ^clientes/guardarPassword$  /CONTROLADOR/clientes/guardarPassword.php [L,NC]
+
+
 
 #PEDIDOS  
 RewriteRule ^pedidos/reporte$ /VISTA/pedidos/reportes.php [L,NC]

@@ -22,6 +22,68 @@
   require($_SERVER["DOCUMENT_ROOT"].'/VISTA/encabezado.php');
   require($_SERVER["DOCUMENT_ROOT"].'/VISTA/menu.php');
 
+
+  $porPagina = 15;
+                  $pagActual = isset($_GET['pagina']) ? max(1, (int)$_GET['pagina']) : 1;
+                  $offset    = ($pagActual - 1) * $porPagina;
+
+                  // Filtros
+                  $filtroDesde   = $_GET['fecha_desde'] ?? '';
+                  $filtroHasta   = $_GET['fecha_hasta'] ?? '';
+                  $filtroCliente = isset($_GET['cliente']) && $_GET['cliente'] !== '' ? (int)$_GET['cliente'] : null;
+                  $filtroEstado  = isset($_GET['estado'])  && $_GET['estado']  !== '' ? (int)$_GET['estado']  : null;
+
+                  $where  = "WHERE p.fecha_baja IS NULL";
+                  $params = [];
+
+                  if ($filtroDesde) {
+                      $where .= " AND DATE(p.fecha_pedido) >= :fecha_desde";
+                      $params[':fecha_desde'] = $filtroDesde;
+                  }
+                  if ($filtroHasta) {
+                      $where .= " AND DATE(p.fecha_pedido) <= :fecha_hasta";
+                      $params[':fecha_hasta'] = $filtroHasta;
+                  }
+                  if ($filtroCliente) {
+                      $where .= " AND p.id_cliente = :id_cliente";
+                      $params[':id_cliente'] = $filtroCliente;
+                  }
+                  if ($filtroEstado) {
+                      $where .= " AND p.id_estado = :id_estado";
+                      $params[':id_estado'] = $filtroEstado;
+                  }
+
+                  // Total con filtros
+                  $stmtTotal = $conexionbd->prepare("SELECT COUNT(*) FROM pedido p $where");
+                  $stmtTotal->execute($params);
+                  $totalPedidos = $stmtTotal->fetchColumn();
+                  $totalPaginas = ceil($totalPedidos / $porPagina);
+
+                  // Lista de clientes para el select
+                  $stmtClientes = $conexionbd->prepare("SELECT id_cliente, nombre, apellido FROM cliente WHERE fecha_baja IS NULL ORDER BY apellido, nombre");
+                  $stmtClientes->execute();
+                  $listaClientes = $stmtClientes->fetchAll();
+
+                  // Query paginada con filtros
+                  $stmt = $conexionbd->prepare("
+                      SELECT p.id_pedido, p.id_estado, p.fecha_pedido, c.nombre, c.apellido,
+                            ep.nombre AS estado, p.total, oip.nombre AS origen
+                      FROM pedido p
+                      INNER JOIN cliente c ON c.id_cliente = p.id_cliente
+                      INNER JOIN estado_pedido ep ON ep.id_estado = p.id_estado
+                      LEFT JOIN origen_ingreso_pedido oip ON oip.id_origen_ingreso = p.id_origen_pedido
+                      $where
+                      ORDER BY p.id_pedido DESC
+                      LIMIT :limite OFFSET :offset
+                  ");
+                  foreach ($params as $key => $value) {
+                      $stmt->bindValue($key, $value);
+                  }
+                  $stmt->bindValue(':limite', $porPagina, PDO::PARAM_INT);
+                  $stmt->bindValue(':offset', $offset,    PDO::PARAM_INT);
+                  $stmt->execute();
+                  $listaPedidos = $stmt->fetchAll();
+
   ?>
   <!-- Content Wrapper. Contains page content -->
   <div class="content-wrapper">
@@ -48,12 +110,64 @@
         <div class="row">
           <div class="col-md-12">
             <div class="card">
+
               <div class="card-header">
-                <h3 class="card-title">
-                    <a href="/pedidos/nuevoPedido" type="button" class="btn btn-block btn-success">Nuevo Pedido</a>
-                </h3>
+                <div class="row align-items-center mb-2">
+                  <div class="col-auto">
+                    <a href="/pedidos/nuevoPedido" class="btn btn-success btn-sm">
+                      <i class="fas fa-plus mr-1"></i> Nuevo Pedido
+                    </a>
+                  </div>
                 </div>
-              <!-- /.card-header -->
+
+                <form method="GET" action="" class="form-inline flex-wrap" style="gap: 8px;" id="formFiltros">
+
+                  <div class="form-group">
+                    <label class="mr-1 small">Desde:</label>
+                    <input type="date" name="fecha_desde" class="form-control form-control-sm"
+                          value="<?= htmlspecialchars($filtroDesde) ?>">
+                  </div>
+
+                  <div class="form-group">
+                    <label class="mr-1 small">Hasta:</label>
+                    <input type="date" name="fecha_hasta" class="form-control form-control-sm"
+                          value="<?= htmlspecialchars($filtroHasta) ?>">
+                  </div>
+
+                  <div class="form-group">
+                    <label class="mr-1 small">Cliente:</label>
+                    <select name="cliente" class="form-control form-control-sm" style="min-width:180px;">
+                      <option value="">Todos</option>
+                      <?php foreach($listaClientes as $c): ?>
+                        <option value="<?= $c['id_cliente'] ?>"
+                          <?= $filtroCliente == $c['id_cliente'] ? 'selected' : '' ?>>
+                          <?= htmlspecialchars($c['apellido'] . ', ' . $c['nombre']) ?>
+                        </option>
+                      <?php endforeach; ?>
+                    </select>
+                  </div>
+
+                  <div class="form-group">
+                    <label class="mr-1 small">Estado:</label>
+                    <select name="estado" class="form-control form-control-sm">
+                      <option value="">Todos</option>
+                      <option value="1" <?= $filtroEstado == 1 ? 'selected' : '' ?>>Pendiente</option>
+                      <option value="2" <?= $filtroEstado == 2 ? 'selected' : '' ?>>En ruta</option>
+                      <option value="3" <?= $filtroEstado == 3 ? 'selected' : '' ?>>Entregado</option>
+                      <option value="4" <?= $filtroEstado == 4 ? 'selected' : '' ?>>Cancelado</option>
+                    </select>
+                  </div>
+
+                  <button type="submit" class="btn btn-primary btn-sm">
+                    <i class="fas fa-search"></i> Buscar
+                  </button>
+                  <a href="/pedidos/listado" class="btn btn-secondary btn-sm">
+                    <i class="fas fa-times"></i> Limpiar
+                  </a>
+
+                </form>
+              </div>
+
               <div class="card-body">
 
               <?php if (isset($_GET['exito']) && $_GET['exito'] === 'eliminado'): ?>
@@ -98,27 +212,6 @@
                   <tbody id="tablaPedidos">
 
                   <?php 
-                  $porPagina = 15;
-                  $pagActual = isset($_GET['pagina']) ? max(1, (int)$_GET['pagina']) : 1;
-                  $offset    = ($pagActual - 1) * $porPagina;
-
-                  // Total de registros para calcular páginas
-                  $stmtTotal = $conexionbd->query("SELECT COUNT(*) FROM pedido WHERE fecha_baja IS NULL");
-                  $totalPedidos = $stmtTotal->fetchColumn();
-                  $totalPaginas = ceil($totalPedidos / $porPagina);
-
-                  $stmt = $conexionbd->prepare("SELECT p.id_pedido, p.id_estado, p.fecha_pedido, c.nombre, c.apellido, 
-                  ep.nombre AS estado, p.total, oip.nombre AS origen
-                  FROM pedido p
-                  INNER JOIN cliente c ON c.id_cliente = p.id_cliente
-                  INNER JOIN estado_pedido ep ON ep.id_estado = p.id_estado
-                  LEFT JOIN origen_ingreso_pedido oip ON oip.id_origen_ingreso = p.id_origen_pedido
-                  ORDER BY p.id_pedido DESC
-                  LIMIT :limite OFFSET :offset");
-                  $stmt->bindValue(':limite', $porPagina, PDO::PARAM_INT);
-                  $stmt->bindValue(':offset', $offset,    PDO::PARAM_INT);
-                  $stmt->execute();
-                  $listaPedidos = $stmt->fetchAll();
                   foreach($listaPedidos as $rsPedidos){
                     $idPedido = $rsPedidos["id_pedido"];
                     $fecha = $rsPedidos["fecha_pedido"];
@@ -341,7 +434,10 @@ $(document).on('click', '#paginacion .page-link', function(e) {
 
     var pagina = $(this).data('pagina');
 
-    $.get(window.location.pathname, { pagina: pagina }, function(response) {
+    // Mantener filtros activos al paginar
+    var params = $('#formFiltros').serialize() + '&pagina=' + pagina;
+
+    $.get(window.location.pathname, params, function(response) {
         var $nuevo = $(response);
         $('#tablaPedidos').html($nuevo.find('#tablaPedidos').html());
         $('#paginacion').replaceWith($nuevo.find('#paginacion'));

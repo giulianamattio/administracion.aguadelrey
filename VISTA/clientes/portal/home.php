@@ -64,7 +64,7 @@ require_once($_SERVER['DOCUMENT_ROOT'] . '/configuraciones/sessionCliente.php');
 
       <!-- Estadísticas -->
       <div class="col-md-5 mb-4">
-        <a href="/clientes/estadisticas" class="card card-opcion bg-rojo shadow d-block">
+        <a href="/clientes/misEstadisticas" class="card card-opcion bg-rojo shadow d-block">
           <div class="card-body p-4">
             <p class="card-title mb-1">Estadísticas</p>
             <p class="card-text">Accedé a las estadísticas en base a tu consumo.</p>

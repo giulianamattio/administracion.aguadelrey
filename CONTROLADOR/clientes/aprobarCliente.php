@@ -5,7 +5,6 @@
 // ============================================================
 ob_start();
 
-require_once($_SERVER['DOCUMENT_ROOT'] . '/configuraciones/session.php');
 require_once($_SERVER['DOCUMENT_ROOT'] . '/configuraciones/inicializacion.php');
 
 if (empty($_POST['idEspera'])) {
