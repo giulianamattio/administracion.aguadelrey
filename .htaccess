@@ -24,6 +24,7 @@ RewriteRule ^api/login$   /api/login.php [L,NC]
 RewriteRule ^api/rutas$   /api/rutas.php [L,NC]
 RewriteRule ^api/entrega$   /api/entrega.php [L,NC]
 RewriteRule ^api/pedido$   /api/pedido.php [L,NC]
+RewriteRule ^api/productos$   /api/productos.php [L,NC]
 
 RewriteRule ^index$ /index.php [L,NC]
 RewriteRule ^principal$ /principal.php [L,NC]
