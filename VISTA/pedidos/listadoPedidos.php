@@ -1,16 +1,16 @@
+<?php
+require($_SERVER["DOCUMENT_ROOT"].'/configuraciones/inicializacion.php');
+?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <?php
-  $pagina = 'Listado';
-  ?>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<?php $pagina = 'Listado'; ?>
   <title>Agua del Rey | <?php echo $pagina; ?></title>
 
   <link rel="Agua del rey" href="/favicon.ico">
-  <?php 
-  require($_SERVER["DOCUMENT_ROOT"].'/configuraciones/inicializacion.php');
+  <?php
   require($_SERVER["DOCUMENT_ROOT"].'/VISTA/css/cssGeneral.php');
   ?>
 </head>
@@ -314,7 +314,7 @@
               <!-- /.card-body -->
 
               <div class="card-footer clearfix">
-                <small class="text-muted">
+                <small id="infoPaginacion"  class="text-muted">
                   Mostrando <?= min($offset + 1, $totalPedidos) ?>–<?= min($offset + $porPagina, $totalPedidos) ?> de <?= $totalPedidos ?> pedidos
                 </small>
                 <ul class="pagination pagination-sm m-0 float-right" id="paginacion">
