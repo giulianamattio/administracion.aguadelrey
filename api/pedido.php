@@ -15,6 +15,16 @@
  *   para respetar el precio histórico — importante en negocio de reparto.
  */
 
+// Decisión: ob_start() captura cualquier output accidental (warnings de PHP,
+// BOM, espacios) antes de que llegue al cliente como texto plano mezclado con JSON.
+// ini_set html_errors=0 hace que los errores PHP usen texto plano en lugar de
+// tags HTML — así si algo falla, el error_log lo registra pero no rompe el JSON.
+ob_start();
+ini_set('html_errors', '0');
+ini_set('display_errors', '0');
+error_reporting(E_ALL);
+ini_set('log_errors', '1');
+
 header('Content-Type: application/json');
 header('Access-Control-Allow-Origin: *');
 header('Access-Control-Allow-Headers: Authorization, Content-Type');

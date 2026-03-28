@@ -1,4 +1,10 @@
 <?php
+ob_start();
+ini_set('html_errors', '0');
+ini_set('display_errors', '0');
+error_reporting(E_ALL);
+ini_set('log_errors', '1');
+
 /**
  * POST /api/entrega
  *
@@ -17,9 +23,7 @@
  * Decisión de diseño:
  * - Usamos una TRANSACCIÓN porque tocamos dos tablas (pedido + detalle_pedido).
  *   Si cualquier paso falla, hacemos ROLLBACK — nunca quedamos con datos parciales.
- *   Esto es un principio ACID fundamental que en UTN se enseña en Bases de Datos II.
- * - Actualizamos cantidad en detalle_pedido para reflejar lo realmente entregado
- *   (puede diferir si el repartidor ajustó +/- en la app).
+ * - Actualizamos cantidad en detalle_pedido para reflejar lo realmente entregado.
  * - Recalculamos el total en base a las cantidades reales entregadas.
  * - Cambiamos id_estado a 3 (Entregado).
  */
