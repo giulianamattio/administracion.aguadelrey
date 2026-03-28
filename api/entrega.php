@@ -1,186 +1,152 @@
 <?php
+// ============================================================
+//  api/entrega.php
+//  POST /api/entrega
+//  Header: Authorization: Bearer <token>
+//  Body JSON: { id_pedido, productos:[{id_detalle, cantidad_entregada}],
+//               monto_cobrado, dni_receptor, observaciones }
+//  Response: { "ok": true, "total_final": X }
+// ============================================================
 ob_start();
 ini_set('html_errors', '0');
 ini_set('display_errors', '0');
-error_reporting(E_ALL);
 ini_set('log_errors', '1');
 
-/**
- * POST /api/entrega
- *
- * Registra la confirmación de entrega de un pedido.
- * Requiere header Authorization: Bearer <jwt>
- *
- * Body JSON esperado:
- * {
- *   "id_pedido":        1,
- *   "productos":        [ { "id_detalle": 1, "cantidad_entregada": 2 }, ... ],
- *   "monto_cobrado":    850.00,
- *   "dni_receptor":     "12345678",
- *   "observaciones":    "Texto libre opcional"
- * }
- *
- * Decisión de diseño:
- * - Usamos una TRANSACCIÓN porque tocamos dos tablas (pedido + detalle_pedido).
- *   Si cualquier paso falla, hacemos ROLLBACK — nunca quedamos con datos parciales.
- * - Actualizamos cantidad en detalle_pedido para reflejar lo realmente entregado.
- * - Recalculamos el total en base a las cantidades reales entregadas.
- * - Cambiamos id_estado a 3 (Entregado).
- */
+require_once($_SERVER['DOCUMENT_ROOT'] . '/configuraciones/conexionBD.php');
+require_once($_SERVER['DOCUMENT_ROOT'] . '/configuraciones/jwt.php');
+require_once($_SERVER['DOCUMENT_ROOT'] . '/configuraciones/apiHelper.php');
 
-header('Content-Type: application/json');
-header('Access-Control-Allow-Origin: *');
-header('Access-Control-Allow-Headers: Authorization, Content-Type');
-header('Access-Control-Allow-Methods: POST, OPTIONS');
+apiHeaders();
 
-// Preflight CORS
-if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
-    http_response_code(200);
-    exit;
-}
-
-require_once __DIR__ . '/auth.php';
-require_once __DIR__ . '/db.php';
-
-// ── 1. Autenticación ──────────────────────────────────────────────────────────
-$payload = verificarJWT();
-if (!$payload) {
-    http_response_code(401);
-    echo json_encode(['error' => 'Token inválido o expirado']);
-    exit;
-}
-
-// ── 2. Validar método ─────────────────────────────────────────────────────────
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-    http_response_code(405);
-    echo json_encode(['error' => 'Método no permitido']);
-    exit;
+    apiError('Método no permitido', 405);
 }
 
-// ── 3. Leer y validar body ────────────────────────────────────────────────────
+$payload = apiAutenticar();
+
+// Leer y validar body JSON
 $body = json_decode(file_get_contents('php://input'), true);
-
 if (json_last_error() !== JSON_ERROR_NONE) {
-    http_response_code(400);
-    echo json_encode(['error' => 'JSON inválido']);
-    exit;
+    apiError('JSON inválido', 400);
 }
 
-$id_pedido    = isset($body['id_pedido'])    ? intval($body['id_pedido'])       : 0;
-$productos    = isset($body['productos'])    ? $body['productos']               : [];
-$monto_cobrado= isset($body['monto_cobrado'])? floatval($body['monto_cobrado']) : 0.0;
-$dni_receptor = isset($body['dni_receptor']) ? trim($body['dni_receptor'])      : '';
-$observaciones= isset($body['observaciones'])? trim($body['observaciones'])     : '';
+$id_pedido     = isset($body['id_pedido'])     ? intval($body['id_pedido'])       : 0;
+$productos     = isset($body['productos'])     ? $body['productos']               : [];
+$monto_cobrado = isset($body['monto_cobrado']) ? floatval($body['monto_cobrado']) : 0.0;
+$dni_receptor  = isset($body['dni_receptor'])  ? trim($body['dni_receptor'])      : '';
+$observaciones = isset($body['observaciones']) ? trim($body['observaciones'])     : '';
 
-// Validaciones mínimas
 if ($id_pedido <= 0) {
-    http_response_code(400);
-    echo json_encode(['error' => 'id_pedido requerido']);
-    exit;
+    apiError('id_pedido requerido', 400);
 }
 if (empty($productos)) {
-    http_response_code(400);
-    echo json_encode(['error' => 'Se requiere al menos un producto entregado']);
-    exit;
+    apiError('Se requiere al menos un producto', 400);
 }
 
-// ── 4. Transacción ────────────────────────────────────────────────────────────
+// Transacción: tocamos pedido + detalle_pedido — si algo falla, ROLLBACK.
+// Principio ACID: nunca quedamos con datos parciales.
 try {
-    $pdo->beginTransaction();
+    $conexionbd->beginTransaction();
 
-    // 4a. Verificar que el pedido existe y está en estado procesable
-    $stmtCheck = $pdo->prepare("
-        SELECT id_pedido, id_estado
-        FROM pedido
+    // Verificar que el pedido existe y está en estado procesable (lock de fila)
+    $stmtCheck = $conexionbd->prepare("
+        SELECT id_pedido FROM pedido
         WHERE id_pedido = :id_pedido
           AND id_estado IN (1, 2)
         FOR UPDATE
     ");
-    // FOR UPDATE: lock de fila para evitar doble entrega concurrente.
-    // Dos repartidores no podrán confirmar el mismo pedido simultáneamente.
     $stmtCheck->execute([':id_pedido' => $id_pedido]);
-    $pedidoExiste = $stmtCheck->fetch(PDO::FETCH_ASSOC);
-
-    if (!$pedidoExiste) {
-        $pdo->rollBack();
-        http_response_code(409);
-        echo json_encode(['error' => 'El pedido no existe o ya fue procesado']);
-        exit;
+    if (!$stmtCheck->fetch()) {
+        $conexionbd->rollBack();
+        apiError('Pedido no encontrado o ya fue procesado', 409);
     }
 
-    // 4b. Actualizar cantidades entregadas en detalle_pedido y calcular total real
+    // Actualizar cantidades entregadas y calcular total real
     $total_real = 0.0;
-    $stmtUpdateDetalle = $pdo->prepare("
+    $stmtPrecio = $conexionbd->prepare("
+        SELECT precio_unitario FROM detalle_pedido
+        WHERE id_detalle = :id_detalle AND id_pedido = :id_pedido
+    ");
+    $stmtUpdate = $conexionbd->prepare("
         UPDATE detalle_pedido
         SET cantidad = :cantidad
-        WHERE id_detalle = :id_detalle
-          AND id_pedido  = :id_pedido
-    ");
-    $stmtPrecio = $pdo->prepare("
-        SELECT precio_unitario FROM detalle_pedido
         WHERE id_detalle = :id_detalle AND id_pedido = :id_pedido
     ");
 
     foreach ($productos as $prod) {
-        $id_detalle        = intval($prod['id_detalle']);
-        $cantidad_entregada= intval($prod['cantidad_entregada']);
+        $id_detalle         = intval($prod['id_detalle']);
+        $cantidad_entregada = intval($prod['cantidad_entregada']);
+
+        // Productos extra (id_detalle negativo) → INSERT nuevo detalle
+        if ($id_detalle < 0 && isset($prod['id_producto'])) {
+            $id_producto = intval($prod['id_producto']);
+            $stmtInsert  = $conexionbd->prepare("
+                INSERT INTO detalle_pedido (id_pedido, id_producto, cantidad, precio_unitario)
+                SELECT :id_pedido, :id_producto, :cantidad, precio_unitario
+                FROM producto WHERE id_producto = :id_producto2
+            ");
+            $stmtInsert->execute([
+                ':id_pedido'   => $id_pedido,
+                ':id_producto' => $id_producto,
+                ':cantidad'    => $cantidad_entregada,
+                ':id_producto2'=> $id_producto,
+            ]);
+            // Obtener precio para sumar al total
+            $stmtPrecioExtra = $conexionbd->prepare(
+                "SELECT precio_unitario FROM producto WHERE id_producto = :id"
+            );
+            $stmtPrecioExtra->execute([':id' => $id_producto]);
+            $rowExtra = $stmtPrecioExtra->fetch();
+            if ($rowExtra) {
+                $total_real += $cantidad_entregada * floatval($rowExtra['precio_unitario']);
+            }
+            continue;
+        }
 
         if ($id_detalle <= 0 || $cantidad_entregada < 0) continue;
 
-        // Obtener precio histórico del detalle para recalcular total
-        $stmtPrecio->execute([
-            ':id_detalle' => $id_detalle,
-            ':id_pedido'  => $id_pedido
-        ]);
-        $row = $stmtPrecio->fetch(PDO::FETCH_ASSOC);
+        $stmtPrecio->execute([':id_detalle' => $id_detalle, ':id_pedido' => $id_pedido]);
+        $row = $stmtPrecio->fetch();
         if ($row) {
             $total_real += $cantidad_entregada * floatval($row['precio_unitario']);
         }
 
-        // Actualizar cantidad real entregada
-        $stmtUpdateDetalle->execute([
+        $stmtUpdate->execute([
             ':cantidad'   => $cantidad_entregada,
             ':id_detalle' => $id_detalle,
-            ':id_pedido'  => $id_pedido
+            ':id_pedido'  => $id_pedido,
         ]);
     }
 
-    // 4c. Actualizar cabecera del pedido
-    // - id_estado = 3 (Entregado)
-    // - fecha_entrega_real = NOW()
-    // - total = recalculado con cantidades reales
-    // - observaciones_internas = dni + monto + texto libre (auditoria)
+    // Actualizar cabecera del pedido
     $obs_auditoria = "DNI receptor: {$dni_receptor} | Cobrado: \${$monto_cobrado}";
     if (!empty($observaciones)) {
         $obs_auditoria .= " | {$observaciones}";
     }
 
-    $stmtPedido = $pdo->prepare("
+    $stmtPedido = $conexionbd->prepare("
         UPDATE pedido
-        SET id_estado            = 3,
-            fecha_entrega_real   = NOW(),
-            total                = :total,
+        SET id_estado              = 3,
+            fecha_entrega_real     = NOW(),
+            total                  = :total,
             observaciones_internas = :observaciones
         WHERE id_pedido = :id_pedido
     ");
     $stmtPedido->execute([
         ':total'        => $total_real,
         ':observaciones'=> $obs_auditoria,
-        ':id_pedido'    => $id_pedido
+        ':id_pedido'    => $id_pedido,
     ]);
 
-    // ── 5. Commit y respuesta ─────────────────────────────────────────────────
-    $pdo->commit();
+    $conexionbd->commit();
 
-    echo json_encode([
-        'success'     => true,
+    apiOk([
         'id_pedido'   => $id_pedido,
         'total_final' => $total_real,
-        'mensaje'     => 'Entrega registrada correctamente'
+        'mensaje'     => 'Entrega registrada correctamente',
     ]);
 
 } catch (PDOException $e) {
-    $pdo->rollBack();
-    http_response_code(500);
-    echo json_encode(['error' => 'Error de base de datos: ' . $e->getMessage()]);
+    $conexionbd->rollBack();
+    apiError('Error de base de datos: ' . $e->getMessage(), 500);
 }

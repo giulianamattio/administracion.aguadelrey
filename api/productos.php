@@ -1,24 +1,14 @@
 <?php
+// ============================================================
+//  api/productos.php
+//  GET /api/productos
+//  Header: Authorization: Bearer <token>
+//  Response: { "ok": true, "productos": [...] }
+// ============================================================
 ob_start();
 ini_set('html_errors', '0');
 ini_set('display_errors', '0');
-error_reporting(E_ALL);
 ini_set('log_errors', '1');
-
-/**
- * GET /api/productos
- *
- * Devuelve la lista de productos activos para que el repartidor
- * pueda agregar un producto extra al pedido desde la app móvil.
- * Requiere header Authorization: Bearer <jwt>
- *
- * Decisión: devolvemos solo productos con activo=true.
- * No tiene sentido ofrecer productos dados de baja para una entrega.
- */
-
-header('Content-Type: application/json');
-header('Access-Control-Allow-Origin: *');
-header('Access-Control-Allow-Headers: Authorization, Content-Type');
 
 require_once($_SERVER['DOCUMENT_ROOT'] . '/configuraciones/conexionBD.php');
 require_once($_SERVER['DOCUMENT_ROOT'] . '/configuraciones/jwt.php');
@@ -31,30 +21,22 @@ if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
 }
 
 $payload = apiAutenticar();
-if (!$payload) {
-    apiError('Token inválido o expirado', 401);
-}
 
-try {
-    $stmt = $conexionbd->prepare("
-        SELECT id_producto, nombre, precio_unitario
-        FROM producto
-        WHERE activo = true
-        ORDER BY nombre ASC
-    ");
-    $stmt->execute();
-    $productos = $stmt->fetchAll(PDO::FETCH_ASSOC);
+$stmt = $conexionbd->prepare("
+    SELECT id_producto, nombre, precio_unitario
+    FROM producto
+    WHERE activo = true
+    ORDER BY nombre ASC
+");
+$stmt->execute();
+$productos = $stmt->fetchAll();
 
-    $result = array_map(function($p) {
-        return [
-            'id_producto'     => (int)$p['id_producto'],
-            'nombre'          => $p['nombre'],
-            'precio_unitario' => (float)$p['precio_unitario']
-        ];
-    }, $productos);
+$result = array_map(function($p) {
+    return [
+        'id_producto'     => (int)   $p['id_producto'],
+        'nombre'          =>         $p['nombre'],
+        'precio_unitario' => (float) $p['precio_unitario'],
+    ];
+}, $productos);
 
-    apiOk(['productos' => $result]);
-
-} catch (PDOException $e) {
-    apiError('Error de base de datos: ' . $e->getMessage(), 500);
-}
+apiOk(['productos' => $result]);
