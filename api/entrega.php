@@ -7,11 +7,6 @@
 //               monto_cobrado, dni_receptor, observaciones }
 //  Response: { "ok": true, "total_final": X }
 // ============================================================
-ob_start();
-ini_set('html_errors', '0');
-ini_set('display_errors', '0');
-ini_set('log_errors', '1');
-
 require_once($_SERVER['DOCUMENT_ROOT'] . '/configuraciones/conexionBD.php');
 require_once($_SERVER['DOCUMENT_ROOT'] . '/configuraciones/jwt.php');
 require_once($_SERVER['DOCUMENT_ROOT'] . '/configuraciones/apiHelper.php');
@@ -24,7 +19,6 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 
 $payload = apiAutenticar();
 
-// Leer y validar body JSON
 $body = json_decode(file_get_contents('php://input'), true);
 if (json_last_error() !== JSON_ERROR_NONE) {
     apiError('JSON inválido', 400);
@@ -36,19 +30,13 @@ $monto_cobrado = isset($body['monto_cobrado']) ? floatval($body['monto_cobrado']
 $dni_receptor  = isset($body['dni_receptor'])  ? trim($body['dni_receptor'])      : '';
 $observaciones = isset($body['observaciones']) ? trim($body['observaciones'])     : '';
 
-if ($id_pedido <= 0) {
-    apiError('id_pedido requerido', 400);
-}
-if (empty($productos)) {
-    apiError('Se requiere al menos un producto', 400);
-}
+if ($id_pedido <= 0)    apiError('id_pedido requerido', 400);
+if (empty($productos))  apiError('Se requiere al menos un producto', 400);
 
-// Transacción: tocamos pedido + detalle_pedido — si algo falla, ROLLBACK.
-// Principio ACID: nunca quedamos con datos parciales.
 try {
     $conexionbd->beginTransaction();
 
-    // Verificar que el pedido existe y está en estado procesable (lock de fila)
+    // Verificar que el pedido existe y está en estado procesable
     $stmtCheck = $conexionbd->prepare("
         SELECT id_pedido FROM pedido
         WHERE id_pedido = :id_pedido
@@ -61,13 +49,12 @@ try {
         apiError('Pedido no encontrado o ya fue procesado', 409);
     }
 
-    // Actualizar cantidades entregadas y calcular total real
-    $total_real = 0.0;
-    $stmtPrecio = $conexionbd->prepare("
+    $total_real  = 0.0;
+    $stmtPrecio  = $conexionbd->prepare("
         SELECT precio_unitario FROM detalle_pedido
         WHERE id_detalle = :id_detalle AND id_pedido = :id_pedido
     ");
-    $stmtUpdate = $conexionbd->prepare("
+    $stmtUpdate  = $conexionbd->prepare("
         UPDATE detalle_pedido
         SET cantidad = :cantidad
         WHERE id_detalle = :id_detalle AND id_pedido = :id_pedido
@@ -86,12 +73,11 @@ try {
                 FROM producto WHERE id_producto = :id_producto2
             ");
             $stmtInsert->execute([
-                ':id_pedido'   => $id_pedido,
-                ':id_producto' => $id_producto,
-                ':cantidad'    => $cantidad_entregada,
-                ':id_producto2'=> $id_producto,
+                ':id_pedido'    => $id_pedido,
+                ':id_producto'  => $id_producto,
+                ':cantidad'     => $cantidad_entregada,
+                ':id_producto2' => $id_producto,
             ]);
-            // Obtener precio para sumar al total
             $stmtPrecioExtra = $conexionbd->prepare(
                 "SELECT precio_unitario FROM producto WHERE id_producto = :id"
             );
@@ -118,11 +104,8 @@ try {
         ]);
     }
 
-    // Actualizar cabecera del pedido
     $obs_auditoria = "DNI receptor: {$dni_receptor} | Cobrado: \${$monto_cobrado}";
-    if (!empty($observaciones)) {
-        $obs_auditoria .= " | {$observaciones}";
-    }
+    if (!empty($observaciones)) $obs_auditoria .= " | {$observaciones}";
 
     $stmtPedido = $conexionbd->prepare("
         UPDATE pedido

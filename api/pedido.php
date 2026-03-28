@@ -5,11 +5,6 @@
 //  Header: Authorization: Bearer <token>
 //  Response: { "ok": true, "pedido": {...} }
 // ============================================================
-ob_start();
-ini_set('html_errors', '0');
-ini_set('display_errors', '0');
-ini_set('log_errors', '1');
-
 require_once($_SERVER['DOCUMENT_ROOT'] . '/configuraciones/conexionBD.php');
 require_once($_SERVER['DOCUMENT_ROOT'] . '/configuraciones/jwt.php');
 require_once($_SERVER['DOCUMENT_ROOT'] . '/configuraciones/apiHelper.php');
