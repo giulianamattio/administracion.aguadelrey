@@ -145,6 +145,9 @@ require_once($_SERVER['DOCUMENT_ROOT'] . '/CONTROLADOR/pedidos/datosNuevaRuta.ph
                               <?php if ($p['observaciones_cliente']): ?>
                                 <br><small class="text-muted ml-4"><?= htmlspecialchars($p['observaciones_cliente']) ?></small>
                               <?php endif; ?>
+                              <?php if ($p['turno']): ?>
+                                <br><small class="text-muted ml-4">Turno deseado: <?= htmlspecialchars($p['turno']) ?></small>
+                              <?php endif; ?>
                             </label>
                           </div>
                         </div>

@@ -33,9 +33,11 @@ $stmtPedidos = $conexionbd->prepare("
         c.domicilio,
         c.localidad,
         c.latitud,
-        c.longitud
+        c.longitud,
+        t.nombre AS turno
     FROM pedido p
     JOIN cliente c ON c.id_cliente = p.id_cliente
+    LEFT JOIN turno t ON t.id_turno = p.id_turno_deseado
     WHERE p.id_estado = 1
       AND p.id_pedido NOT IN (
           SELECT pr.id_pedido FROM parada_ruta pr

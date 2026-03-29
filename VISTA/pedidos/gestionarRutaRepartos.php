@@ -43,11 +43,61 @@ require_once($_SERVER['DOCUMENT_ROOT'] . '/CONTROLADOR/pedidos/listaRutas.php');
         <div class="row">
           <div class="col-md-12">
             <div class="card">
+             
               <div class="card-header">
-                <a href="/pedidos/nuevaRutaReparto" class="btn btn-success">
-                  <i class="fas fa-plus mr-1"></i> Nueva ruta
-                </a>
+                <div class="row align-items-center mb-2">
+                  <div class="col-auto">
+                    <a href="/pedidos/nuevaRutaReparto" class="btn btn-success btn-sm">
+                      <i class="fas fa-plus mr-1"></i> Nueva ruta
+                    </a>
+                  </div>
+                </div>
+
+                <form method="GET" action="" class="form-inline flex-wrap" style="gap: 8px;" id="formFiltros">
+
+                  <div class="form-group">
+                    <label class="mr-1 small">Desde:</label>
+                    <input type="date" name="fecha_desde" class="form-control form-control-sm"
+                          value="<?= htmlspecialchars($filtroDesde) ?>">
+                  </div>
+
+                  <div class="form-group">
+                    <label class="mr-1 small">Hasta:</label>
+                    <input type="date" name="fecha_hasta" class="form-control form-control-sm"
+                          value="<?= htmlspecialchars($filtroHasta) ?>">
+                  </div>
+
+                  <div class="form-group">
+                    <label class="mr-1 small">Turno:</label>
+                    <select name="turno" class="form-control form-control-sm">
+                      <option value="">Todos</option>
+                      <option value="mañana"  <?= $filtroTurno === 'mañana'  ? 'selected' : '' ?>>Mañana</option>
+                      <option value="tarde"   <?= $filtroTurno === 'tarde'   ? 'selected' : '' ?>>Tarde</option>
+                    </select>
+                  </div>
+
+                  <div class="form-group">
+                    <label class="mr-1 small">Estado:</label>
+                    <select name="estado" class="form-control form-control-sm">
+                      <option value="">Todos</option>
+                      <option value="planificada" <?= $filtroEstado === 'planificada' ? 'selected' : '' ?>>Planificada</option>
+                      <option value="en_curso"    <?= $filtroEstado === 'en_curso'    ? 'selected' : '' ?>>En curso</option>
+                      <option value="finalizada"  <?= $filtroEstado === 'finalizada'  ? 'selected' : '' ?>>Finalizada</option>
+                      <option value="cancelada"   <?= $filtroEstado === 'cancelada'   ? 'selected' : '' ?>>Cancelada</option>
+                    </select>
+                  </div>
+
+                  <button type="submit" class="btn btn-primary btn-sm">
+                    <i class="fas fa-search"></i> Buscar
+                  </button>
+                  <a href="/pedidos/gestionarRutaRepartos" class="btn btn-secondary btn-sm">
+                    <i class="fas fa-times"></i> Limpiar
+                  </a>
+
+                </form>
               </div>
+
+
               <div class="card-body">
 
                 <?php if (isset($_GET['ok'])): ?>
@@ -72,11 +122,12 @@ require_once($_SERVER['DOCUMENT_ROOT'] . '/CONTROLADOR/pedidos/listaRutas.php');
                       <th>Turno</th>
                       <th>Repartidor</th>
                       <th>Paradas</th>
+                      <th>Bidones vacíos</th>
                       <th>Estado</th>
                       <th>Acciones</th>
                     </tr>
                   </thead>
-                  <tbody>
+                  <tbody id="tablaRutas">
                     <?php if (count($rutas) > 0): ?>
                       <?php foreach ($rutas as $i => $ruta): ?>
                         <tr>
@@ -85,6 +136,7 @@ require_once($_SERVER['DOCUMENT_ROOT'] . '/CONTROLADOR/pedidos/listaRutas.php');
                           <td><?= ucfirst($ruta['turno']) ?></td>
                           <td><?= htmlspecialchars($ruta['repartidor'] ?? '-') ?></td>
                           <td class="text-center"><?= $ruta['total_paradas'] ?></td>
+                          <td class="text-center"><?= $ruta['total_bidones_vacios'] ?></td>
                           <td>
                             <?php
                             $badgeClass = match($ruta['estado']) {
@@ -136,6 +188,28 @@ require_once($_SERVER['DOCUMENT_ROOT'] . '/CONTROLADOR/pedidos/listaRutas.php');
                   </tbody>
                 </table>
               </div>
+
+              
+              <div class="card-footer clearfix">
+                <small id="infoRutas" class="text-muted">
+                  Mostrando <?= min($offset + 1, $totalRutas) ?>–<?= min($offset + $porPagina, $totalRutas) ?> de <?= $totalRutas ?> rutas
+                </small>
+                <ul class="pagination pagination-sm m-0 float-right" id="paginacion">
+                  <li class="page-item <?= $pagActual <= 1 ? 'disabled' : '' ?>">
+                    <a class="page-link" href="#" data-pagina="<?= $pagActual - 1 ?>">&laquo;</a>
+                  </li>
+                  <?php for ($p = 1; $p <= $totalPaginas; $p++): ?>
+                    <li class="page-item <?= $p === $pagActual ? 'active' : '' ?>">
+                      <a class="page-link" href="#" data-pagina="<?= $p ?>"><?= $p ?></a>
+                    </li>
+                  <?php endfor; ?>
+                  <li class="page-item <?= $pagActual >= $totalPaginas ? 'disabled' : '' ?>">
+                    <a class="page-link" href="#" data-pagina="<?= $pagActual + 1 ?>">&raquo;</a>
+                  </li>
+                </ul>
+              </div>
+
+
             </div>
           </div>
         </div>
@@ -231,6 +305,25 @@ document.querySelectorAll('.btn-eliminar').forEach(function(btn) {
         document.getElementById('eliminar-fecha').textContent = this.dataset.fecha;
         document.getElementById('eliminar-turno').textContent = this.dataset.turno;
         $('#modalEliminar').modal('show');
+    });
+});
+
+
+// Paginado AJAX
+$(document).on('click', '#paginacion .page-link', function(e) {
+    e.preventDefault();
+
+    var $item = $(this).closest('.page-item');
+    if ($item.hasClass('disabled') || $item.hasClass('active')) return;
+
+    var pagina = $(this).data('pagina');
+    var params = $('#formFiltros').serialize() + '&pagina=' + pagina;
+
+    $.get(window.location.pathname, params, function(response) {
+        var $nuevo = $(response);
+        $('#tablaRutas').html($nuevo.find('#tablaRutas').html());
+        $('#paginacion').replaceWith($nuevo.find('#paginacion'));
+        $('#infoRutas').replaceWith($nuevo.find('#infoRutas'));
     });
 });
 </script>

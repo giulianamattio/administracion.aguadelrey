@@ -1,13 +1,11 @@
+<?php require($_SERVER["DOCUMENT_ROOT"].'/configuraciones/inicializacion.php'); ?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <?php
-  $pagina = 'Modificar pedido';
-
-  require($_SERVER["DOCUMENT_ROOT"].'/configuraciones/inicializacion.php');
-  require($_SERVER["DOCUMENT_ROOT"].'/VISTA/css/cssGeneral.php');
+<?php $pagina = 'Modificar pedido';
+require($_SERVER["DOCUMENT_ROOT"].'/VISTA/css/cssGeneral.php');
 
   // Obtener el ID del pedido desde la URL
   $idPedido = $_GET['id'] ?? null;

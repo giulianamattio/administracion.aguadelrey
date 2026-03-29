@@ -1,27 +1,24 @@
+<?php require($_SERVER["DOCUMENT_ROOT"].'/configuraciones/inicializacion.php'); ?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <?php
-  $pagina = 'Productos más vendidos';
-  require($_SERVER["DOCUMENT_ROOT"].'/configuraciones/inicializacion.php');
-  require($_SERVER["DOCUMENT_ROOT"].'/VISTA/css/cssGeneral.php');
+<?php $pagina = 'Productos más vendidos';
+require($_SERVER["DOCUMENT_ROOT"].'/VISTA/css/cssGeneral.php');
 
-  // Filtro de fechas con default últimos 3 meses
-    $desde = $_GET['fecha_desde'] ?? date('Y-m-d', strtotime('-3 months'));
-    $hasta = $_GET['fecha_hasta'] ?? date('Y-m-d');
+// Filtro de fechas con default últimos 3 meses
+$desde = $_GET['fecha_desde'] ?? date('Y-m-d', strtotime('-3 months'));
+$hasta = $_GET['fecha_hasta'] ?? date('Y-m-d');
 
-
-    // Validar que desde no sea mayor que hasta
+// Validar que desde no sea mayor que hasta
 if ($desde > $hasta) {
     $temp  = $desde;
     $desde = $hasta;
     $hasta = $temp;
 }
 
-  $sql = "
-    SELECT 
+$sql = " SELECT 
       pr.nombre,
       SUM(pp.cantidad) AS total_vendido
     FROM pedido_producto pp

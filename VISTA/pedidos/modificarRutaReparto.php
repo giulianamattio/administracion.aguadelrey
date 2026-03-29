@@ -42,9 +42,10 @@ $paradas = $stmtParadas->fetchAll();
 // Pedidos pendientes no incluidos en esta ruta (para poder agregar)
 $stmtDisponibles = $conexionbd->prepare("
     SELECT p.id_pedido, c.nombre, c.apellido, c.domicilio,
-           c.latitud, c.longitud, p.observaciones_cliente
+           c.latitud, c.longitud, p.observaciones_cliente, t.nombre AS turno
     FROM pedido p
     JOIN cliente c ON c.id_cliente = p.id_cliente
+    LEFT JOIN turno t ON t.id_turno = p.id_turno_deseado
     WHERE p.id_estado = 1
       AND p.id_pedido NOT IN (
           SELECT pr2.id_pedido FROM parada_ruta pr2
@@ -223,6 +224,9 @@ $pagina = 'Modificar ruta de reparto';
                         — <?= htmlspecialchars($d['domicilio'] ?? 'Sin domicilio') ?>
                         <?php if ($d['observaciones_cliente']): ?>
                           <small class="text-muted"> · <?= htmlspecialchars($d['observaciones_cliente']) ?></small>
+                        <?php endif; ?>
+                        <?php if ($d['turno']): ?>
+                          <small class="text-muted"> · Turno deseado: <?= htmlspecialchars($d['turno']) ?></small>
                         <?php endif; ?>
                       </label>
                     </div>

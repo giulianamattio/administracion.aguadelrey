@@ -182,7 +182,7 @@ $listaPedidos = $stmt->fetchAll();
           </div>
           <?php endif; ?>
 
-          <?php if ($idEstado == 1 && strtotime($pedido['fecha_pedido']) >= strtotime(date('Y-m-d'))): ?>
+          <?php if ($idEstado == 1): ?>
             <div class="mt-2 pt-2 d-flex justify-content-end gap-2" style="border-top: 1px solid #f0f0f0;">
               <a href="/clientes/modificarPedidoPortal/<?= $pedido['id_pedido'] ?>" 
                 class="btn btn-outline-warning btn-sm">

@@ -32,6 +32,8 @@ require($_SERVER["DOCUMENT_ROOT"].'/configuraciones/inicializacion.php');
                   $filtroHasta   = $_GET['fecha_hasta'] ?? '';
                   $filtroCliente = isset($_GET['cliente']) && $_GET['cliente'] !== '' ? (int)$_GET['cliente'] : null;
                   $filtroEstado  = isset($_GET['estado'])  && $_GET['estado']  !== '' ? (int)$_GET['estado']  : null;
+                  $filtroOrden = $_GET['orden'] ?? 'DESC';
+                  $filtroOrden = in_array($filtroOrden, ['ASC', 'DESC']) ? $filtroOrden : 'DESC';
 
                   $where  = "WHERE p.fecha_baja IS NULL";
                   $params = [];
@@ -67,13 +69,16 @@ require($_SERVER["DOCUMENT_ROOT"].'/configuraciones/inicializacion.php');
                   // Query paginada con filtros
                   $stmt = $conexionbd->prepare("
                       SELECT p.id_pedido, p.id_estado, p.fecha_pedido, c.nombre, c.apellido,
-                            ep.nombre AS estado, p.total, oip.nombre AS origen
+                            ep.nombre AS estado, p.total, oip.nombre AS origen,
+                            p.observaciones_internas, p.observaciones_cliente,
+                            t.nombre AS turno, p.bidones_vacios
                       FROM pedido p
                       INNER JOIN cliente c ON c.id_cliente = p.id_cliente
                       INNER JOIN estado_pedido ep ON ep.id_estado = p.id_estado
                       LEFT JOIN origen_ingreso_pedido oip ON oip.id_origen_ingreso = p.id_origen_pedido
+                      LEFT JOIN turno t ON t.id_turno = p.id_turno_deseado
                       $where
-                      ORDER BY p.id_pedido DESC
+                      ORDER BY p.fecha_pedido $filtroOrden
                       LIMIT :limite OFFSET :offset
                   ");
                   foreach ($params as $key => $value) {
@@ -200,7 +205,16 @@ require($_SERVER["DOCUMENT_ROOT"].'/configuraciones/inicializacion.php');
                   <thead>
                     <tr>
                       <th style="width: 10px;">#</th>
-                      <th>Fecha</th>
+                      <th>
+                        Fecha
+                        <a href="#" id="btnOrden" data-orden="<?= $filtroOrden ?>" title="Ordenar por fecha">
+                          <?php if ($filtroOrden === 'DESC'): ?>
+                            <i class="fas fa-sort-amount-down" style="color:#6c757d;"></i>
+                          <?php else: ?>
+                            <i class="fas fa-sort-amount-up" style="color:#6c757d;"></i>
+                          <?php endif; ?>
+                        </a>
+                      </th>
                       <th>Cliente</th>
                       <th>Productos</th>
                       <th>Origen</th>
@@ -211,101 +225,130 @@ require($_SERVER["DOCUMENT_ROOT"].'/configuraciones/inicializacion.php');
                   </thead>
                   <tbody id="tablaPedidos">
 
-                  <?php 
-                  foreach($listaPedidos as $rsPedidos){
-                    $idPedido = $rsPedidos["id_pedido"];
-                    $fecha = $rsPedidos["fecha_pedido"];
-                    $cliente = $rsPedidos["nombre"]." ".$rsPedidos["apellido"];
-                    $estado = $rsPedidos["estado"];
-                    $idEstado = $rsPedidos["id_estado"];
-                    $total = $rsPedidos["total"];
-                    $origen = $rsPedidos["origen"];
-                    ?>
-                    <tr>
-                      <td style="width: 10px"><?=$idPedido?></td>
-                      <td><?=date('d/m/Y', strtotime($fecha))?></td>
-                      <td><?=$cliente?></td>
-                      <td>
-                        <ul style="list-style-type: none;">
-                          <?php
-                          $stmtProductosPedidos = $conexionbd->prepare("SELECT p.nombre AS producto, pp.cantidad
-                              FROM pedido_producto pp 
-                              INNER JOIN producto p ON p.id_producto = pp.id_producto
-                              WHERE pp.fecha_baja IS NULL AND pp.id_pedido= ".$idPedido);
-                          $stmtProductosPedidos->execute();
-                          $listaProductosPedidos = $stmtProductosPedidos->fetchAll();
-                          foreach($listaProductosPedidos as $rsProductosPedidos){
-                            $producto = $rsProductosPedidos["producto"];
-                            $cantidad = $rsProductosPedidos["cantidad"];
-                            ?>
-                            <li><?=$cantidad." ".$producto?></li>
+                  <?php foreach($listaPedidos as $rsPedidos):
+                          $idPedido   = $rsPedidos["id_pedido"];
+                          $fecha      = $rsPedidos["fecha_pedido"];
+                          $cliente    = $rsPedidos["nombre"]." ".$rsPedidos["apellido"];
+                          $estado     = $rsPedidos["estado"];
+                          $idEstado   = $rsPedidos["id_estado"];
+                          $total      = $rsPedidos["total"];
+                          $origen     = $rsPedidos["origen"];
+                          $bidonesVacios = $rsPedidos["bidones_vacios"];
+                          $obsInterna = $rsPedidos["observaciones_internas"] ?? '';
+                          $obsCliente = $rsPedidos["observaciones_cliente"] ?? '';
+                          $turno      = $rsPedidos["turno"] ?? '';
+                      ?>
+                      <tr>
+                        <td style="width: 10px"><?=$idPedido?></td>
+                        <td><?=date('d/m/Y', strtotime($fecha))?></td>
+                        <td><?=$cliente?></td>
+                        <td>
+                          <ul style="list-style-type: none;">
                             <?php
-                          }
-                          ?>
-                        </ul>
-                      </td>
-                      <td><?= $origen  ?></td>
-                      <td>
-                          <b>Total: </b> $<?= $total ?><br/>
-                      </td>
-                      <td>
-                      <?php
-                      switch ($idEstado) {
-                          case 1: //Pendiente
-                              ?> <span class="badge badge-warning"><?= $estado?></span><?php
-                              break;
-                          case 2: //En ruta
-                              ?> <span class="badge badge-primary"><?= $estado?></span><?php
-                              break;
-                          case 3: //Entregado
-                              ?><span class="badge badge-success"><?= $estado?></span> <?php
-                              break;
-                          case 4: //Cancelado
-                              ?> <span class="badge badge-danger"><?=$estado ?></span> <?php
-                              break;
-                          default:
-                          ?>
-                              <span></span> <?php
-                      }?>
-                      
-                    
-                    </td>
-                      <td>
-                        <?php
-                        if($idEstado == 1 ){
-                          ?>
-                          <button type="button" class="btn btn-link p-0" 
-                              data-toggle="modal" 
-                              data-target="#modalEliminar" 
-                              data-id="<?= $idPedido ?>">
+                            $stmtProductosPedidos = $conexionbd->prepare("
+                                SELECT p.nombre AS producto, pp.cantidad
+                                FROM pedido_producto pp 
+                                INNER JOIN producto p ON p.id_producto = pp.id_producto
+                                WHERE pp.fecha_baja IS NULL AND pp.id_pedido = :id_pedido
+                            ");
+                            $stmtProductosPedidos->execute([':id_pedido' => $idPedido]);
+                            foreach($stmtProductosPedidos->fetchAll() as $rsProductosPedidos):
+                            ?>
+                              <li><?=$rsProductosPedidos["cantidad"]." ".$rsProductosPedidos["producto"]?></li>
+                            <?php endforeach; ?>
+                          </ul>
+                        </td>
+                        <td><?= $origen ?></td>
+                        <td><b>Total: </b> $<?= $total ?></td>
+                        <td>
+                          <?php switch ($idEstado) {
+                            case 1: ?><span class="badge badge-warning"><?= $estado?></span><?php break;
+                            case 2: ?><span class="badge badge-primary"><?= $estado?></span><?php break;
+                            case 3: ?><span class="badge badge-success"><?= $estado?></span><?php break;
+                            case 4: ?><span class="badge badge-danger"><?= $estado?></span><?php break;
+                            default: ?><span></span><?php
+                          }?>
+                        </td>
+                        <td>
+                          <!-- Botón info -->
+                          <button type="button" class="btn btn-link p-0 btn-info-pedido"
+                                  data-toggle="collapse"
+                                  data-target="#detalle-<?= $idPedido ?>"
+                                  title="Ver detalle">
+                            <i class="fas fa-info-circle fa-lg" style="color: #17a2b8;"></i>
+                          </button>
+                          &nbsp;
+                          <?php if($idEstado == 1): ?>
+                            <button type="button" class="btn btn-link p-0"
+                                    data-toggle="modal"
+                                    data-target="#modalEliminar"
+                                    data-id="<?= $idPedido ?>">
                               <i class="fas fa-minus-square fa-lg" style="color: #dc3545;"></i>
-                          </button>
-                          &nbsp;
-                        <?php
-                        }if($idEstado == 1  || $idEstado == 2 ){
-                        ?>
-                          <button type="button" class="btn btn-link p-0" 
-                              data-toggle="modal" 
-                              data-target="#modalFinalizar" 
-                              data-id="<?= $idPedido ?>">
+                            </button>
+                            &nbsp;
+                          <?php endif; ?>
+                          <?php if($idEstado == 1 || $idEstado == 2): ?>
+                            <button type="button" class="btn btn-link p-0"
+                                    data-toggle="modal"
+                                    data-target="#modalFinalizar"
+                                    data-id="<?= $idPedido ?>">
                               <i class="fas fa-check-square fa-lg" style="color: #28a745;"></i>
-                          </button>
-                          &nbsp;
-                        <?php
-                        }if($idEstado == 1 ){
-                          ?>  
-                            <a href="/pedidos/modificarPedido/<?=$idPedido  ?>">
+                            </button>
+                            &nbsp;
+                          <?php endif; ?>
+                          <?php if($idEstado == 1): ?>
+                            <a href="/pedidos/modificarPedido/<?=$idPedido?>">
                               <i class="fas fa-pen-square fa-lg" style="color: #ffc107;"></i>
                             </a>
-                          <?php
-                        }
-                        ?>
-                      </td>
-                    </tr>
+                          <?php endif; ?>
+                        </td>
+                      </tr>
 
-                    <?php
-                  }
-                  ?>  
+                      <!-- Fila de detalle colapsable -->
+                      <tr>
+                        <td colspan="8" class="p-0 border-0">
+                          <div class="collapse" id="detalle-<?= $idPedido ?>">
+                            <div class="px-4 py-3" style="background:#f8f9fa; border-bottom: 1px solid #dee2e6;">
+                              <div class="row">
+                                <div class="col-sm-2">
+                                  <p class="mb-1">
+                                    <strong><i class="fas fa-clock mr-1 text-muted"></i>Turno deseado:</strong>
+                                  </p>
+                                  <p class="text-muted mb-0">
+                                    <?= $turno ? htmlspecialchars($turno) : '<span class="text-muted">No especificado</span>' ?>
+                                  </p>
+                                </div>
+                                <div class="col-sm-4">
+                                  <p class="mb-1">
+                                    <strong><i class="fas fa-comment mr-1 text-muted"></i>Observaciones del cliente:</strong>
+                                  </p>
+                                  <p class="text-muted mb-0">
+                                    <?= $obsCliente ? htmlspecialchars($obsCliente) : '<span class="text-muted">—</span>' ?>
+                                  </p>
+                                </div>
+                                <div class="col-sm-4">
+                                  <p class="mb-1">
+                                    <strong><i class="fas fa-lock mr-1 text-muted"></i>Observaciones internas:</strong>
+                                  </p>
+                                  <p class="text-muted mb-0">
+                                    <?= $obsInterna ? htmlspecialchars($obsInterna) : '<span class="text-muted">—</span>' ?>
+                                  </p>
+                                </div>
+                                <div class="col-sm-2">
+                                  <p class="mb-1">
+                                    <strong><i class="fas fa-wine-bottle mr-1 text-muted"></i>Bidones vacios:</strong>
+                                  </p>
+                                  <p class="text-muted mb-0">
+                                    <?= $bidonesVacios ? htmlspecialchars($bidonesVacios) : '<span class="text-muted">—</span>' ?>
+                                  </p>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </td>
+                      </tr>
+
+                      <?php endforeach; ?> 
                     
                   </tbody>
                 </table>
@@ -435,13 +478,53 @@ $(document).on('click', '#paginacion .page-link', function(e) {
     var pagina = $(this).data('pagina');
 
     // Mantener filtros activos al paginar
-    var params = $('#formFiltros').serialize() + '&pagina=' + pagina;
+    var ordenActual = $('#btnOrden').data('orden') || 'DESC';
+    var params = $('#formFiltros').serialize() + '&pagina=' + pagina + '&orden=' + ordenActual;
 
     $.get(window.location.pathname, params, function(response) {
         var $nuevo = $(response);
         $('#tablaPedidos').html($nuevo.find('#tablaPedidos').html());
         $('#paginacion').replaceWith($nuevo.find('#paginacion'));
         $('#infoPaginacion').replaceWith($nuevo.find('#infoPaginacion'));
+    });
+});
+
+
+
+// Rotar ícono info al abrir/cerrar detalle
+$(document).on('click', '.btn-info-pedido', function() {
+    var icon = $(this).find('i');
+    var target = $(this).data('target');
+    $(target).on('show.bs.collapse', function() {
+        icon.css('color', '#0c6fa8');
+    });
+    $(target).on('hide.bs.collapse', function() {
+        icon.css('color', '#17a2b8');
+    });
+});
+
+
+
+// Ordenar por fecha
+$(document).on('click', '#btnOrden', function(e) {
+    e.preventDefault();
+    var ordenActual = $(this).data('orden');
+    var nuevoOrden  = ordenActual === 'DESC' ? 'ASC' : 'DESC';
+
+    var params = $('#formFiltros').serialize() + '&orden=' + nuevoOrden + '&pagina=1';
+
+    $.get(window.location.pathname, params, function(response) {
+        var $nuevo = $(response);
+        $('#tablaPedidos').html($nuevo.find('#tablaPedidos').html());
+        $('#paginacion').replaceWith($nuevo.find('#paginacion'));
+        $('#infoPaginacion').replaceWith($nuevo.find('#infoPaginacion'));
+        // Actualizar el botón con el nuevo estado
+        $('#btnOrden').data('orden', nuevoOrden);
+        $('#btnOrden i').attr('class',
+            nuevoOrden === 'DESC'
+                ? 'fas fa-sort-amount-down'
+                : 'fas fa-sort-amount-up'
+        );
     });
 });
 </script>
