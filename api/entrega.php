@@ -3,9 +3,14 @@
 //  api/entrega.php
 //  POST /api/entrega
 //  Header: Authorization: Bearer <token>
-//  Body JSON: { id_pedido, productos:[{id_detalle, cantidad_entregada}],
+//  Body JSON: { id_pedido, productos:[{id_detalle, id_producto, cantidad_entregada}],
 //               monto_cobrado, dni_receptor, observaciones }
 //  Response: { "ok": true, "total_final": X }
+//
+//  Decisión de diseño:
+//  Los ítems del pedido viven en pedido_producto (id_detalle = id_pedido_producto).
+//  Al confirmar entrega actualizamos cantidad en pedido_producto y cabecera en pedido.
+//  Los productos extra (id_detalle negativo) se insertan en pedido_producto.
 // ============================================================
 require_once($_SERVER['DOCUMENT_ROOT'] . '/configuraciones/conexionBD.php');
 require_once($_SERVER['DOCUMENT_ROOT'] . '/configuraciones/jwt.php');
@@ -30,8 +35,8 @@ $monto_cobrado = isset($body['monto_cobrado']) ? floatval($body['monto_cobrado']
 $dni_receptor  = isset($body['dni_receptor'])  ? trim($body['dni_receptor'])      : '';
 $observaciones = isset($body['observaciones']) ? trim($body['observaciones'])     : '';
 
-if ($id_pedido <= 0)    apiError('id_pedido requerido', 400);
-if (empty($productos))  apiError('Se requiere al menos un producto', 400);
+if ($id_pedido <= 0)   apiError('id_pedido requerido', 400);
+if (empty($productos)) apiError('Se requiere al menos un producto', 400);
 
 try {
     $conexionbd->beginTransaction();
@@ -41,6 +46,7 @@ try {
         SELECT id_pedido FROM pedido
         WHERE id_pedido = :id_pedido
           AND id_estado IN (1, 2)
+          AND fecha_baja IS NULL
         FOR UPDATE
     ");
     $stmtCheck->execute([':id_pedido' => $id_pedido]);
@@ -49,54 +55,68 @@ try {
         apiError('Pedido no encontrado o ya fue procesado', 409);
     }
 
-    $total_real  = 0.0;
-    $stmtPrecio  = $conexionbd->prepare("
-        SELECT precio_unitario FROM detalle_pedido
-        WHERE id_detalle = :id_detalle AND id_pedido = :id_pedido
+    $total_real = 0.0;
+
+    // Precio unitario de un ítem existente en pedido_producto
+    $stmtPrecio = $conexionbd->prepare("
+        SELECT pr.precio_unitario
+        FROM pedido_producto pp
+        INNER JOIN producto pr ON pr.id_producto = pp.id_producto
+        WHERE pp.id_pedido_producto = :id_detalle
+          AND pp.id_pedido          = :id_pedido
     ");
-    $stmtUpdate  = $conexionbd->prepare("
-        UPDATE detalle_pedido
+
+    // Actualizar cantidad entregada en pedido_producto
+    $stmtUpdate = $conexionbd->prepare("
+        UPDATE pedido_producto
         SET cantidad = :cantidad
-        WHERE id_detalle = :id_detalle AND id_pedido = :id_pedido
+        WHERE id_pedido_producto = :id_detalle
+          AND id_pedido          = :id_pedido
     ");
 
     foreach ($productos as $prod) {
         $id_detalle         = intval($prod['id_detalle']);
         $cantidad_entregada = intval($prod['cantidad_entregada']);
+        $id_producto        = isset($prod['id_producto']) ? intval($prod['id_producto']) : 0;
 
-        // Productos extra (id_detalle negativo) → INSERT nuevo detalle
-        if ($id_detalle < 0 && isset($prod['id_producto'])) {
-            $id_producto = intval($prod['id_producto']);
-            $stmtInsert  = $conexionbd->prepare("
-                INSERT INTO detalle_pedido (id_pedido, id_producto, cantidad, precio_unitario)
-                SELECT :id_pedido, :id_producto, :cantidad, precio_unitario
-                FROM producto WHERE id_producto = :id_producto2
+        // Producto extra (id_detalle negativo) → INSERT en pedido_producto
+        if ($id_detalle < 0 && $id_producto > 0) {
+            $stmtPrecioExtra = $conexionbd->prepare("
+                SELECT precio_unitario FROM producto WHERE id_producto = :id
             ");
-            $stmtInsert->execute([
-                ':id_pedido'    => $id_pedido,
-                ':id_producto'  => $id_producto,
-                ':cantidad'     => $cantidad_entregada,
-                ':id_producto2' => $id_producto,
-            ]);
-            $stmtPrecioExtra = $conexionbd->prepare(
-                "SELECT precio_unitario FROM producto WHERE id_producto = :id"
-            );
             $stmtPrecioExtra->execute([':id' => $id_producto]);
             $rowExtra = $stmtPrecioExtra->fetch();
-            if ($rowExtra) {
-                $total_real += $cantidad_entregada * floatval($rowExtra['precio_unitario']);
-            }
+            $precioExtra = $rowExtra ? floatval($rowExtra['precio_unitario']) : 0.0;
+
+            $stmtNextval = $conexionbd->query("SELECT nextval('seq_pedido_producto') AS proximo");
+            $rowNextval  = $stmtNextval->fetch();
+            $nuevoId     = $rowNextval['proximo'];
+
+            $stmtInsert = $conexionbd->prepare("
+                INSERT INTO pedido_producto (id_pedido_producto, id_pedido, id_producto, cantidad)
+                VALUES (:id_pp, :id_pedido, :id_producto, :cantidad)
+            ");
+            $stmtInsert->execute([
+                ':id_pp'      => $nuevoId,
+                ':id_pedido'  => $id_pedido,
+                ':id_producto'=> $id_producto,
+                ':cantidad'   => $cantidad_entregada,
+            ]);
+
+            $total_real += $cantidad_entregada * $precioExtra;
             continue;
         }
 
         if ($id_detalle <= 0 || $cantidad_entregada < 0) continue;
 
+        // Obtener precio para calcular total
         $stmtPrecio->execute([':id_detalle' => $id_detalle, ':id_pedido' => $id_pedido]);
         $row = $stmtPrecio->fetch();
         if ($row) {
             $total_real += $cantidad_entregada * floatval($row['precio_unitario']);
         }
 
+        // Actualizar cantidad real entregada
         $stmtUpdate->execute([
             ':cantidad'   => $cantidad_entregada,
             ':id_detalle' => $id_detalle,
@@ -104,6 +124,7 @@ try {
         ]);
     }
 
+    // Actualizar cabecera del pedido — estado 3 (Entregado)
     $obs_auditoria = "DNI receptor: {$dni_receptor} | Cobrado: \${$monto_cobrado}";
     if (!empty($observaciones)) $obs_auditoria .= " | {$observaciones}";
 
