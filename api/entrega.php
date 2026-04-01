@@ -29,11 +29,12 @@ if (json_last_error() !== JSON_ERROR_NONE) {
     apiError('JSON inválido', 400);
 }
 
-$id_pedido     = isset($body['id_pedido'])     ? intval($body['id_pedido'])       : 0;
-$productos     = isset($body['productos'])     ? $body['productos']               : [];
-$monto_cobrado = isset($body['monto_cobrado']) ? floatval($body['monto_cobrado']) : 0.0;
-$dni_receptor  = isset($body['dni_receptor'])  ? trim($body['dni_receptor'])      : '';
-$observaciones = isset($body['observaciones']) ? trim($body['observaciones'])     : '';
+$id_pedido     = isset($body['id_pedido'])      ? intval($body['id_pedido'])       : 0;
+$productos     = isset($body['productos'])      ? $body['productos']               : [];
+$monto_cobrado = isset($body['monto_cobrado'])  ? floatval($body['monto_cobrado']) : 0.0;
+$dni_receptor  = isset($body['dni_receptor'])   ? trim($body['dni_receptor'])      : '';
+$bidones_vacios= isset($body['bidones_vacios']) ? intval($body['bidones_vacios'])  : 0;
+$observaciones = isset($body['observaciones'])  ? trim($body['observaciones'])     : '';
 
 if ($id_pedido <= 0)   apiError('id_pedido requerido', 400);
 if (empty($productos)) apiError('Se requiere al menos un producto', 400);
@@ -133,13 +134,15 @@ try {
         SET id_estado              = 3,
             fecha_entrega_real     = NOW(),
             total                  = :total,
+            bidones_vacios         = :bidones_vacios,
             observaciones_internas = :observaciones
         WHERE id_pedido = :id_pedido
     ");
     $stmtPedido->execute([
-        ':total'        => $total_real,
-        ':observaciones'=> $obs_auditoria,
-        ':id_pedido'    => $id_pedido,
+        ':total'         => $total_real,
+        ':bidones_vacios'=> $bidones_vacios,
+        ':observaciones' => $obs_auditoria,
+        ':id_pedido'     => $id_pedido,
     ]);
 
     $conexionbd->commit();
