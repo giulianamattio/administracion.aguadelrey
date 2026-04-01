@@ -54,6 +54,7 @@ RewriteRule ^clientes/guardarPedidoPortal$     /CONTROLADOR/clientes/guardarPedi
 RewriteRule ^clientes/guardarPerfil$    /CONTROLADOR/clientes/guardarPerfil.php [L,NC]
 RewriteRule ^clientes/cambiarPassword$  /VISTA/clientes/portal/cambiarPassword.php [L,NC]
 RewriteRule ^clientes/guardarPassword$  /CONTROLADOR/clientes/guardarPassword.php [L,NC]
+RewriteRule ^clientes/solicitarResetPassword$  /CONTROLADOR/clientes/solicitarResetPassword.php [L,NC]
 
 
 

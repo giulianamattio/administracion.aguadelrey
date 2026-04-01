@@ -90,6 +90,13 @@ if (!empty($_SESSION['cliente_id'])) {
         </button>
       </form>
 
+      <div class="text-right mt-2">
+        <a href="#" data-toggle="modal" data-target="#modalOlvidePassword"
+          style="font-size:13px;">
+          <i class="fas fa-key mr-1"></i> ¿Olvidaste tu contraseña?
+        </a>
+      </div>
+
       <hr>
       <div class="text-center">
         <small class="text-muted">¿No tenés cuenta?</small>
@@ -104,5 +111,51 @@ if (!empty($_SESSION['cliente_id'])) {
 
 <script src="/plugins/jquery/jquery.min.js"></script>
 <script src="/plugins/bootstrap/js/bootstrap.bundle.min.js"></script>
+
+<!-- Modal Olvidé mi contraseña -->
+<div class="modal fade" id="modalOlvidePassword" tabindex="-1" role="dialog">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title"><i class="fas fa-key mr-2"></i>Recuperar contraseña</h5>
+        <button type="button" class="close" data-dismiss="modal"><span>&times;</span></button>
+      </div>
+      <form action="/clientes/solicitarResetPassword" method="POST">
+        <div class="modal-body">
+
+          <?php if (isset($_GET['reset_ok'])): ?>
+            <div class="alert alert-success">
+              <i class="fas fa-check-circle mr-1"></i>
+              Si el email existe en nuestra base, recibirás un link para restablecer tu contraseña.
+            </div>
+          <?php endif; ?>
+
+          <p class="text-muted" style="font-size:14px;">
+            Ingresá tu email y te enviaremos un link para restablecer tu contraseña.
+          </p>
+          <div class="form-group">
+            <label class="font-weight-bold">Email</label>
+            <div class="input-group">
+              <div class="input-group-prepend">
+                <span class="input-group-text"><i class="fas fa-envelope"></i></span>
+              </div>
+              <input type="email" name="email" class="form-control"
+                     placeholder="tu@email.com" required>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+          <button type="submit" class="btn btn-primary">
+            <i class="fas fa-paper-plane mr-1"></i> Enviar link
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+
+
 </body>
 </html>
