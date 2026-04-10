@@ -28,7 +28,7 @@ foreach ($_GET as $key => $value ) {
       </div>
     </div>
     <div class="card-body">
-
+      
       <form action="/principal" method="post" onSubmit="return validarInicioSesion(this)">
         <div class="input-group mb-3">
           <input type="text" class="form-control" onkeypress="javascript:validarUsuario(this.value)" name="usuario" id="usuario" placeholder="Usuario">

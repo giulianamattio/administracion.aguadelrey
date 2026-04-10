@@ -28,7 +28,7 @@
             <!-- small box -->
             <div class="small-box bg-info">
               <div class="inner">
-                <h3>2</h3>
+                <h3><?= $rutasPlanificadas ?></h3>
 
                 <p>Rutas de reparto programadas</p>
               </div>
@@ -43,7 +43,7 @@
             <!-- small box -->
             <div class="small-box bg-success">
               <div class="inner">
-                <h3>11</h3>
+                <h3><?= $pedidosPendientes ?></h3>
 
                 <p>Pedidos pendientes</p>
               </div>
@@ -58,7 +58,7 @@
             <!-- small box -->
             <div class="small-box bg-warning">
               <div class="inner">
-                <h3>4</h3>
+                <h3><?= $clientesEspera ?></h3>
 
                 <p>Clientes en lista de espera</p>
               </div>
@@ -74,7 +74,7 @@
             <!-- small box -->
             <div class="small-box bg-danger">
               <div class="inner">
-                <h3>65</h3>
+                <h3><?= $maquinasActivas ?></h3>
 
                 <p>Máquinas dispensadoras activas</p>
               </div>

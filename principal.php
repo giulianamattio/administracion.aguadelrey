@@ -4,6 +4,9 @@ require_once($_SERVER["DOCUMENT_ROOT"].'/CONTROLADOR/login/login.php');
 
 // 2. Recién ahora inicializar (verifica sesión, redirige si no hay)
 require_once($_SERVER["DOCUMENT_ROOT"].'/configuraciones/inicializacion.php');
+
+
+require_once($_SERVER["DOCUMENT_ROOT"].'/CONTROLADOR/home/consultasHome.php');
 ?>
 <!DOCTYPE html>
 <html lang="en">
