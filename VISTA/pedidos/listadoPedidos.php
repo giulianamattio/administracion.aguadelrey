@@ -404,7 +404,7 @@ require($_SERVER["DOCUMENT_ROOT"].'/configuraciones/inicializacion.php');
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
-        <a href="#" id="btnConfirmarEliminar" class="btn btn-danger">Sí, eliminar</a>
+        <a href="#" id="btnConfirmarEliminar" class="btn btn-danger">Sí, cancelar</a>
       </div>
     </div>
   </div>

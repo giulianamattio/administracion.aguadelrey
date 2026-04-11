@@ -1,67 +1,98 @@
 function productos(){ 
    var tbody = $('#lista_productos tbody'); 
-   //Agregar fila nueva. 
-   $('#lista_productos .button_agregar_producto').click(function(){ 
-     document.getElementById("cantidadProductoActual").value = parseInt(document.getElementById("cantidadProductoActual").value) +1; 
-     var cantidadProductoActual = document.getElementById("cantidadProductoActual").value; 
-     //var fila_contenido = tbody.find('tr').first().html();
 
-     var fila_contenido = ` <td> <select class="form-control form-control-sm" id="producto${cantidadProductoActual}" name="producto${cantidadProductoActual}"> <option value="0">Seleccione el producto</option> </select> <div class="invalid-feedback d-block text-danger small error-producto${cantidadProductoActual}"></div> </td> </td> <td> <input type="number" class="form-control form-control-sm" id="cantidad${cantidadProductoActual}" name="cantidad${cantidadProductoActual}" /> <div class="invalid-feedback d-block text-danger small error-cantidad${cantidadProductoActual}"></div> </td> <td> <i class="fas fa-minus-square fa-lg button_eliminar_producto" style="color: #dc3545;"></i> </td>`;
+   // Agregar fila nueva. 
+   $('#lista_productos .button_agregar_producto').click(function(){ 
+      document.getElementById("cantidadProductoActual").value = parseInt(document.getElementById("cantidadProductoActual").value) + 1; 
+      var cantidadProductoActual = document.getElementById("cantidadProductoActual").value; 
+
+      var fila_contenido = `
+         <td>
+            <select class="form-control form-control-sm select-producto" id="producto${cantidadProductoActual}" name="producto${cantidadProductoActual}">
+               <option value="0">Seleccione el producto</option>
+            </select>
+            <div class="invalid-feedback d-block text-danger small error-producto${cantidadProductoActual}"></div>
+         </td>
+         <td>
+            <input type="number" class="form-control form-control-sm input-cantidad" id="cantidad${cantidadProductoActual}" name="cantidad${cantidadProductoActual}" min="1" />
+            <div class="invalid-feedback d-block text-danger small error-cantidad${cantidadProductoActual}"></div>
+         </td>
+         <td>
+            <i class="fas fa-minus-square fa-lg button_eliminar_producto" style="color: #dc3545;"></i>
+         </td>`;
 
       var fila_nueva = $('<tr></tr>');
-
       fila_nueva.append(fila_contenido); 
       tbody.append(fila_nueva);
       cargarSelectProductos(cantidadProductoActual);
    }); 
 
-   //Eliminar fila. 
+   // Eliminar fila. 
    $('#lista_productos').on('click', '.button_eliminar_producto', function(){
       $(this).parents('tr').eq(0).remove();
-      document.getElementById("cantidadProductoActual").value = parseInt(document.getElementById("cantidadProductoActual").value) -1; 
+      document.getElementById("cantidadProductoActual").value = parseInt(document.getElementById("cantidadProductoActual").value) - 1;
+      recalcularTotal();
    });
 
 }
 
-    $(document).ready(function(){
-       productos(); 
+// Recorre todas las filas y suma precio * cantidad
+function recalcularTotal() {
+   var total = 0;
+
+   $('#lista_productos tbody tr').each(function() {
+      var select   = $(this).find('select');
+      var cantidad = parseFloat($(this).find('input[type="number"]').val()) || 0;
+      var precio   = parseFloat(select.find('option:selected').data('precio')) || 0;
+      total += precio * cantidad;
+   });
+
+   $('#total').val(total > 0 ? total.toFixed(2) : '');
+}
+
+// Al cambiar producto → recalcular
+$(document).on('change', '.select-producto', function() {
+   recalcularTotal();
+});
+
+// Al cambiar cantidad → recalcular
+$(document).on('input', '.input-cantidad', function() {
+   recalcularTotal();
+});
 
 
-        //Limpiar error al completar cada campo
-         $('#fecha').on('change', function () {
-            $(this).removeClass('is-invalid');
-            $('#error-fecha').text('');
-         });
+$(document).ready(function(){
+   productos(); 
 
-         $('#cliente').on('change', function () {
-            $(this).removeClass('is-invalid');
-            $('#error-cliente').text('');
-         });
+   // Limpiar error al completar cada campo
+   $('#fecha').on('change', function () {
+      $(this).removeClass('is-invalid');
+      $('#error-fecha').text('');
+   });
 
-         $('#total').on('input', function () {
-            $(this).removeClass('is-invalid');
-            $('#error-total').text('');
-         });
+   $('#cliente').on('change', function () {
+      $(this).removeClass('is-invalid');
+      $('#error-cliente').text('');
+   });
 
-         // Limpiar errores en productos y cantidades dinámicas
-         $('#lista_productos').on('change', 'select', function () {
-            $(this).removeClass('is-invalid');
-            var id = $(this).attr('id').replace('producto', '');
-            $('.error-producto' + id).text('');
-         });
+   $('#total').on('input', function () {
+      $(this).removeClass('is-invalid');
+      $('#error-total').text('');
+   });
 
-         $('#lista_productos').on('input', 'input[type="number"]', function () {
-            $(this).removeClass('is-invalid');
-            var id = $(this).attr('id').replace('cantidad', '');
-            $('.error-cantidad' + id).text('');
-         });
-    }); 
+   // Limpiar errores en productos y cantidades dinámicas
+   $('#lista_productos').on('change', 'select', function () {
+      $(this).removeClass('is-invalid');
+      var id = $(this).attr('id').replace('producto', '');
+      $('.error-producto' + id).text('');
+   });
 
-
-$('#modalVerDatos').on('shown.bs.modal', function () {
-     alert("Hola");
- $('#myInput').trigger('focus')
-})
+   $('#lista_productos').on('input', 'input[type="number"]', function () {
+      $(this).removeClass('is-invalid');
+      var id = $(this).attr('id').replace('cantidad', '');
+      $('.error-cantidad' + id).text('');
+   });
+}); 
 
 
 function cargarSelectProductos(idSelect) {
@@ -72,9 +103,14 @@ function cargarSelectProductos(idSelect) {
       success: function(data) { 
          let select = $("#producto" + idSelect);
          select.empty(); 
-         select.append('<option value="">Seleccione un producto</option>'); 
+         select.append('<option value="0">Seleccione un producto</option>'); 
          data.forEach(function(item) { 
-            select.append( `<option value="${item.idProducto}">${item.descripcion}</option>` ); 
+            select.append(
+               $('<option></option>')
+                  .val(item.idProducto)
+                  .text(item.descripcion)
+                  .data('precio', item.precioUnitario)  // precio en data attribute
+            ); 
          }); 
       } 
    }); 

@@ -7,14 +7,12 @@
 <?php $pagina = 'Modificar pedido';
 require($_SERVER["DOCUMENT_ROOT"].'/VISTA/css/cssGeneral.php');
 
-  // Obtener el ID del pedido desde la URL
   $idPedido = $_GET['id'] ?? null;
   if (!$idPedido || !is_numeric($idPedido)) {
       header('Location: /pedidos/listado?error=id_invalido');
       exit;
   }
 
-  // Cargar datos del pedido
   $stmtPedido = $conexionbd->prepare("
       SELECT p.id_pedido, p.id_cliente, p.fecha_pedido, p.total, p.observaciones_internas
       FROM pedido p
@@ -28,21 +26,19 @@ require($_SERVER["DOCUMENT_ROOT"].'/VISTA/css/cssGeneral.php');
       exit;
   }
 
-  // Cargar productos del pedido
-  $stmtProductos = $conexionbd->prepare("
+  $stmtProductosPedido = $conexionbd->prepare("
       SELECT pp.id_producto, pp.cantidad
       FROM pedido_producto pp
       WHERE pp.id_pedido = :id_pedido AND pp.fecha_baja IS NULL
   ");
-  $stmtProductos->execute([':id_pedido' => $idPedido]);
-  $productosPedido = $stmtProductos->fetchAll();
+  $stmtProductosPedido->execute([':id_pedido' => $idPedido]);
+  $productosPedido = $stmtProductosPedido->fetchAll();
 
-  // Cargar lista de todos los productos
-  $stmtTodosProductos = $conexionbd->prepare("SELECT id_producto, nombre FROM producto WHERE fecha_baja IS NULL");
+  // Incluir precio_unitario para el data-precio
+  $stmtTodosProductos = $conexionbd->prepare("SELECT id_producto, nombre, precio_unitario FROM producto WHERE fecha_baja IS NULL");
   $stmtTodosProductos->execute();
   $listaProductos = $stmtTodosProductos->fetchAll();
 
-  // Cargar lista de clientes
   $stmtClientes = $conexionbd->prepare("SELECT id_cliente, nombre, apellido FROM cliente WHERE fecha_baja IS NULL");
   $stmtClientes->execute();
   $listaClientes = $stmtClientes->fetchAll();
@@ -162,18 +158,24 @@ require($_SERVER["DOCUMENT_ROOT"].'/VISTA/css/cssGeneral.php');
                         </tr>
                       </thead>
                       <tbody>
+
                         <?php 
                         $cantidadInicial = count($productosPedido);
                         if ($cantidadInicial === 0) $cantidadInicial = 1;
-                        foreach($productosPedido as $idx => $pp):
-                          $num = $idx + 1;
+
+                        if (!empty($productosPedido)):
+                          foreach($productosPedido as $idx => $pp):
+                            $num = $idx + 1;
                         ?>
                         <tr>
                           <td>
-                            <select class="form-control form-control-sm" id="producto<?=$num?>" name="producto<?=$num?>">
+                            <!-- clase select-producto para el recálculo automático -->
+                            <select class="form-control form-control-sm select-producto" id="producto<?=$num?>" name="producto<?=$num?>">
                               <option value="0">Seleccione un producto</option>
                               <?php foreach($listaProductos as $prod): ?>
-                                <option value="<?= $prod['id_producto'] ?>" <?= $prod['id_producto'] == $pp['id_producto'] ? 'selected' : '' ?>>
+                                <option value="<?= $prod['id_producto'] ?>"
+                                        data-precio="<?= $prod['precio_unitario'] ?>"
+                                        <?= $prod['id_producto'] == $pp['id_producto'] ? 'selected' : '' ?>>
                                   <?= $prod['nombre'] ?>
                                 </option>
                               <?php endforeach; ?>
@@ -181,7 +183,8 @@ require($_SERVER["DOCUMENT_ROOT"].'/VISTA/css/cssGeneral.php');
                             <div class="invalid-feedback d-block text-danger small error-producto<?=$num?>"></div>
                           </td>
                           <td>
-                            <input type="number" class="form-control form-control-sm" id="cantidad<?=$num?>" name="cantidad<?=$num?>" value="<?= $pp['cantidad'] ?>">
+                            <!-- clase input-cantidad para el recálculo automático -->
+                            <input type="number" class="form-control form-control-sm input-cantidad" id="cantidad<?=$num?>" name="cantidad<?=$num?>" value="<?= $pp['cantidad'] ?>">
                             <div class="invalid-feedback d-block text-danger small error-cantidad<?=$num?>"></div>
                           </td>
                           <td>
@@ -190,24 +193,27 @@ require($_SERVER["DOCUMENT_ROOT"].'/VISTA/css/cssGeneral.php');
                         </tr>
                         <?php endforeach; ?>
 
-                        <?php if (empty($productosPedido)): ?>
+                        <?php else: ?>
                         <tr>
                           <td>
-                            <select class="form-control form-control-sm" id="producto1" name="producto1">
+                            <select class="form-control form-control-sm select-producto" id="producto1" name="producto1">
                               <option value="0">Seleccione un producto</option>
                               <?php foreach($listaProductos as $prod): ?>
-                                <option value="<?= $prod['id_producto'] ?>"><?= $prod['nombre'] ?></option>
+                                <option value="<?= $prod['id_producto'] ?>" data-precio="<?= $prod['precio_unitario'] ?>">
+                                  <?= $prod['nombre'] ?>
+                                </option>
                               <?php endforeach; ?>
                             </select>
                           </td>
                           <td>
-                            <input type="number" class="form-control form-control-sm" id="cantidad1" name="cantidad1">
+                            <input type="number" class="form-control form-control-sm input-cantidad" id="cantidad1" name="cantidad1">
                           </td>
                           <td>
                             <i class="fas fa-minus-square fa-lg button_eliminar_producto" style="color: #dc3545;"></i>
                           </td>
                         </tr>
                         <?php endif; ?>
+
                       </tbody>
                       <tfoot>
                         <tr>
