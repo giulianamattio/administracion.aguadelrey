@@ -75,6 +75,8 @@ RewriteRule ^reportes/reporteClientes$ /VISTA/reportes/reporteClientes.php [L,NC
 RewriteRule ^reportes/reporteSeguimientoClientes$ /VISTA/reportes/reporteSeguimientoClientes.php [L,NC]
 RewriteRule ^reportes/reporteProductosMasVendidos$ /VISTA/reportes/reporteProductosMasVendidos.php [L,NC]
 RewriteRule ^reportes/reporteMaquinasDispensadoras$ /VISTA/reportes/reporteMaquinasDispensadoras.php [L,NC]
+RewriteRule ^reportes/reporteRecorridos$ /VISTA/reportes/reporteRecorridos.php [L,NC]
+
 
 RewriteRule ^pedidos/gestionarRutaRepartos$      /VISTA/pedidos/gestionarRutaRepartos.php [L,NC]
 RewriteRule ^pedidos/nuevaRutaReparto$           /VISTA/pedidos/nuevaRutaReparto.php [L,NC]

@@ -1,12 +1,13 @@
 <?php
 require($_SERVER["DOCUMENT_ROOT"].'/configuraciones/inicializacion.php');
 
-$idPedido              = $_POST['id_pedido']              ?? null;
-$fecha                 = $_POST['fecha']                  ?? null;
-$cliente               = $_POST['cliente']                ?? null;
-$total                 = $_POST['total']                  ?? null;
-$observaciones         = $_POST['observaciones']          ?? null;
-$cantidadProductoActual = $_POST['cantidadProductoActual'] ?? 0;
+$idPedido               = $_POST['id_pedido']               ?? null;
+$fecha                  = $_POST['fecha']                   ?? null;
+$cliente                = $_POST['cliente']                 ?? null;
+$total                  = $_POST['total']                   ?? null;
+$observaciones          = $_POST['observaciones']           ?? null;
+$cantidadProductoActual = $_POST['cantidadProductoActual']  ?? 0;
+$idTurnoDeseado         = $_POST['id_turno_deseado']        ?? null;
 
 if (!$idPedido || !is_numeric($idPedido)) {
     header('Location: /pedidos/listado?error=id_invalido');
@@ -36,21 +37,23 @@ if ($rowVerifica['total'] > 0) {
 }
 
 try {
-    // Actualizar cabecera del pedido
+    // Actualizar cabecera del pedido (incluye id_turno_deseado)
     $stmtUpdate = $conexionbd->prepare("
         UPDATE pedido 
-        SET id_cliente            = :id_cliente,
-            fecha_pedido          = :fecha_pedido,
-            total                 = :total,
-            observaciones_internas = :observaciones
+        SET id_cliente             = :id_cliente,
+            fecha_pedido           = :fecha_pedido,
+            total                  = :total,
+            observaciones_internas = :observaciones,
+            id_turno_deseado       = :id_turno_deseado
         WHERE id_pedido = :id_pedido AND fecha_baja IS NULL
     ");
     $stmtUpdate->execute([
-        ':id_cliente'    => $cliente,
-        ':fecha_pedido'  => $fecha,
-        ':total'         => $total,
-        ':observaciones' => $observaciones,
-        ':id_pedido'     => $idPedido
+        ':id_cliente'       => $cliente,
+        ':fecha_pedido'     => $fecha,
+        ':total'            => $total,
+        ':observaciones'    => $observaciones,
+        ':id_turno_deseado' => $idTurnoDeseado,
+        ':id_pedido'        => $idPedido
     ]);
 
     // Baja lógica de todos los productos anteriores
@@ -91,9 +94,7 @@ try {
     exit;
 
 } catch (PDOException $e) {
-
-    /*die("ERROR: " . $e->getMessage());*/
-   error_log("ERROR UPDATE PEDIDO: " . $e->getMessage());
+    error_log("ERROR UPDATE PEDIDO: " . $e->getMessage());
     header('Location: /pedidos/modificarPedido/' . $idPedido . '?error=1');
     exit;
 }

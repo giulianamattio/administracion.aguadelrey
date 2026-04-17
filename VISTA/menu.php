@@ -82,8 +82,44 @@ $rol           = $_SESSION['rol']    ?? 0;
             </a>
           </li>-->
           
+          <li class="nav-header">CLIENTES</li>
+          <li class="nav-item">
+            <a href="/clientes/listaDeEspera" class="nav-link">
+              <i class="nav-icon fas fa-list-ul"></i>
+              <p>
+                Lista de espera
+                <!--<span class="badge badge-info right">4</span>-->
+              </p>
+            </a>
+          </li>
+          <?php if($rol == 1): ?>
+          <li class="nav-item">
+            <a href="/clientes/geocodificarTodos" class="nav-link">
+              <i class="nav-icon fas fa-map-marker-alt"></i>
+              <p>Geocodificación</p>
+            </a>
+          </li>
+          <?php endif; ?>
 
-          <li class="nav-header">REPORTES</li>
+          <li class="nav-header">M&Aacute;QUINAS DISPENSADORAS</li>
+          <li class="nav-item">
+            <a href="/maquinasDispensadoras/nuevoArreglo" class="nav-link">
+              <i class="nav-icon fas fa-tools"></i>
+              <p>Nuevo arreglo</p>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="/maquinasDispensadoras/listado" class="nav-link">
+              <i class="nav-icon fas fa-list-ul"></i>
+              <p>
+                Listado Máquinas
+                <!--<span class="badge badge-info right">4</span>-->
+              </p>
+            </a>
+          </li>
+
+
+           <li class="nav-header">REPORTES</li>
           <li class="nav-item">
             <a href="/reportes/reportePedidosTotal" class="nav-link">
               <i class="nav-icon fas fa-calendar-alt"></i>
@@ -121,46 +157,13 @@ $rol           = $_SESSION['rol']    ?? 0;
               <p>Maquinas dispensadoras</p>
             </a>
           </li>
-
-          
-
-          
-
-          <li class="nav-header">CLIENTES</li>
           <li class="nav-item">
-            <a href="/clientes/listaDeEspera" class="nav-link">
-              <i class="nav-icon fas fa-list-ul"></i>
-              <p>
-                Lista de espera
-                <!--<span class="badge badge-info right">4</span>-->
-              </p>
+            <a href="/reportes/reporteRecorridos" class="nav-link">
+              <i class="nav-icon fas fa-truck"></i>
+              <p>Reportes Recorridos</p>
             </a>
           </li>
-          <?php if($rol == 1): ?>
-          <li class="nav-item">
-            <a href="/clientes/geocodificarTodos" class="nav-link">
-              <i class="nav-icon fas fa-map-marker-alt"></i>
-              <p>Geocodificación</p>
-            </a>
-          </li>
-          <?php endif; ?>
 
-          <li class="nav-header">M&Aacute;QUINAS DISPENSADORAS</li>
-          <li class="nav-item">
-            <a href="/maquinasDispensadoras/nuevoArreglo" class="nav-link">
-              <i class="nav-icon fas fa-tools"></i>
-              <p>Nuevo arreglo</p>
-            </a>
-          </li>
-          <li class="nav-item">
-            <a href="/maquinasDispensadoras/listado" class="nav-link">
-              <i class="nav-icon fas fa-list-ul"></i>
-              <p>
-                Listado Máquinas
-                <!--<span class="badge badge-info right">4</span>-->
-              </p>
-            </a>
-          </li>
 
           <li class="nav-header">SINCRONIZACI&Oacute;N</li>
           <li class="nav-item">

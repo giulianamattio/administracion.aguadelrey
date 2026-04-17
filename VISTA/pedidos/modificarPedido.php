@@ -13,8 +13,9 @@ require($_SERVER["DOCUMENT_ROOT"].'/VISTA/css/cssGeneral.php');
       exit;
   }
 
+  // Incluir id_turno_deseado en la consulta del pedido
   $stmtPedido = $conexionbd->prepare("
-      SELECT p.id_pedido, p.id_cliente, p.fecha_pedido, p.total, p.observaciones_internas
+      SELECT p.id_pedido, p.id_cliente, p.fecha_pedido, p.total, p.observaciones_internas, p.id_turno_deseado
       FROM pedido p
       WHERE p.id_pedido = :id_pedido AND p.fecha_baja IS NULL
   ");
@@ -34,7 +35,6 @@ require($_SERVER["DOCUMENT_ROOT"].'/VISTA/css/cssGeneral.php');
   $stmtProductosPedido->execute([':id_pedido' => $idPedido]);
   $productosPedido = $stmtProductosPedido->fetchAll();
 
-  // Incluir precio_unitario para el data-precio
   $stmtTodosProductos = $conexionbd->prepare("SELECT id_producto, nombre, precio_unitario FROM producto WHERE fecha_baja IS NULL");
   $stmtTodosProductos->execute();
   $listaProductos = $stmtTodosProductos->fetchAll();
@@ -42,6 +42,11 @@ require($_SERVER["DOCUMENT_ROOT"].'/VISTA/css/cssGeneral.php');
   $stmtClientes = $conexionbd->prepare("SELECT id_cliente, nombre, apellido FROM cliente WHERE fecha_baja IS NULL");
   $stmtClientes->execute();
   $listaClientes = $stmtClientes->fetchAll();
+
+  // Cargar turnos
+  $stmtTurnos = $conexionbd->prepare("SELECT id_turno, nombre FROM turno ORDER BY id_turno");
+  $stmtTurnos->execute();
+  $listaTurnos = $stmtTurnos->fetchAll();
   ?>
   <title>Agua del Rey | <?php echo $pagina; ?></title>
   <link rel="Agua del rey" href="/favicon.ico">
@@ -137,6 +142,34 @@ require($_SERVER["DOCUMENT_ROOT"].'/VISTA/css/cssGeneral.php');
 
                   </div>
 
+                  <!-- Turno deseado -->
+                  <div class="row">
+                    <div class="col-sm-6">
+                      <div class="form-group">
+                        <label>Turno deseado por el cliente<span class="text-danger">*</span></label>
+                        <div id="turnos-container">
+                          <?php foreach($listaTurnos as $turno): ?>
+                            <div class="icheck-primary d-inline mr-3">
+                              <input type="radio"
+                                     id="turno<?= $turno['id_turno'] ?>"
+                                     name="id_turno_deseado"
+                                     value="<?= $turno['id_turno'] ?>"
+                                     <?= $turno['id_turno'] == $pedido['id_turno_deseado'] ? 'checked' : '' ?>>
+                              <label for="turno<?= $turno['id_turno'] ?>">
+                                <?php if($turno['id_turno'] == 1 || $turno['id_turno'] == 2): ?>
+                                          Por la <?= $turno['nombre'] ?>
+                                      <?php else: ?>
+                                          <?= $turno['nombre'] ?>
+                                      <?php endif; ?>
+                              </label>
+                            </div>
+                          <?php endforeach; ?>
+                        </div>
+                        <div id="error-turno" class="text-danger small error-msg"></div>
+                      </div>
+                    </div>
+                  </div>
+
                   <div class="row">
                     <div class="col-sm-6">
                       <div class="form-group">
@@ -169,7 +202,6 @@ require($_SERVER["DOCUMENT_ROOT"].'/VISTA/css/cssGeneral.php');
                         ?>
                         <tr>
                           <td>
-                            <!-- clase select-producto para el recálculo automático -->
                             <select class="form-control form-control-sm select-producto" id="producto<?=$num?>" name="producto<?=$num?>">
                               <option value="0">Seleccione un producto</option>
                               <?php foreach($listaProductos as $prod): ?>
@@ -183,7 +215,6 @@ require($_SERVER["DOCUMENT_ROOT"].'/VISTA/css/cssGeneral.php');
                             <div class="invalid-feedback d-block text-danger small error-producto<?=$num?>"></div>
                           </td>
                           <td>
-                            <!-- clase input-cantidad para el recálculo automático -->
                             <input type="number" class="form-control form-control-sm input-cantidad" id="cantidad<?=$num?>" name="cantidad<?=$num?>" value="<?= $pp['cantidad'] ?>">
                             <div class="invalid-feedback d-block text-danger small error-cantidad<?=$num?>"></div>
                           </td>

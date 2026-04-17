@@ -191,7 +191,7 @@ $datosMeses      = json_encode(array_map(fn($m) => (int)$m['cantidad'], $pedidos
                             <span style="display:inline-block;width:12px;height:12px;border-radius:50%;background:<?= $color ?>"></span>
                         </td>
                         <td style="font-size:13px;"><?= htmlspecialchars($prod['nombre']) ?></td>
-                        <td class="text-right font-weight-bold" style="font-size:13px;"><?= $prod['total'] ?> uds.</td>
+                        <td class="text-right font-weight-bold" style="font-size:13px;"><?= $prod['total'] ?> unidades</td>
                         </tr>
                         <?php endforeach; ?>
                     </tbody>
@@ -221,11 +221,11 @@ $datosMeses      = json_encode(array_map(fn($m) => (int)$m['cantidad'], $pedidos
                 <?php
                 // Desglose por tipo de bidón
                 foreach ($consumoAgua as $item):
-                    $litros = stripos($item['nombre'], '20L') !== false ? 20 : 10;
+                    $litros = stripos($item['nombre'], '20L') !== false ? 20 : 12;
                 ?>
                 <div class="d-flex justify-content-between w-100 px-2" style="font-size:13px;">
                     <span><?= htmlspecialchars($item['nombre']) ?></span>
-                    <span class="font-weight-bold"><?= $item['total'] ?> uds. = <?= $item['total'] * $litros ?>L</span>
+                    <span class="font-weight-bold"><?= $item['total'] ?> unidades = <?= $item['total'] * $litros ?>L</span>
                 </div>
                 <?php endforeach; ?>
                 <?php else: ?>

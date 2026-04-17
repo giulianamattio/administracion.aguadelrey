@@ -13,6 +13,11 @@ function validarNuevoPedido(form) {
         valido = false;
     }
 
+    if (!$('input[name="id_turno_deseado"]:checked').val()) {
+        $('#error-turno').text('Por favor, seleccione un turno.');
+        valido = false;
+    }
+
     // Validar cliente
     const cliente = $('#cliente').val();
     if (!cliente || cliente == '0') {
