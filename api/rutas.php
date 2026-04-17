@@ -15,13 +15,10 @@ if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
     apiError('Método no permitido', 405);
 }
 
-// Validar token y obtener datos del empleado
-$payload     = apiAutenticar();
-$idEmpleado  = $payload['id_empleado'];
-$idRol       = $payload['id_rol'];
+$payload    = apiAutenticar();
+$idEmpleado = $payload['id_empleado'];
+$idRol      = $payload['id_rol'];
 
-// Admin (rol 1) ve todas las rutas planificadas de hoy
-// Repartidor (rol 2) ve solo sus rutas
 $hoy = date('Y-m-d');
 
 if ($idRol == 1) {
@@ -53,14 +50,17 @@ if ($idRol == 1) {
 
 $rutasDB = $stmtRutas->fetchAll();
 
-// Para cada ruta traer sus paradas ordenadas
-// CAMBIO: se agrega c.id_cliente al SELECT para que la app móvil
-// pueda identificar al cliente sin hacer una consulta adicional.
+// Decisión: incluimos id_estado y estado_nombre de cada pedido para que
+// la app pueda mostrar el estado real y bloquear acciones según corresponda.
+// NO filtramos por estado del pedido — mostramos todos para que el repartidor
+// vea el estado real de cada parada (entregado, ausente, pendiente).
 $stmtParadas = $conexionbd->prepare("
     SELECT
         pr.id_parada,
         pr.orden,
         p.id_pedido,
+        p.id_estado,
+        ep.nombre           AS estado_nombre,
         p.observaciones_cliente,
         c.id_cliente,
         c.nombre,
@@ -69,8 +69,9 @@ $stmtParadas = $conexionbd->prepare("
         c.localidad,
         c.telefono
     FROM parada_ruta pr
-    JOIN pedido p  ON p.id_pedido  = pr.id_pedido
-    JOIN cliente c ON c.id_cliente = p.id_cliente
+    JOIN pedido p       ON p.id_pedido  = pr.id_pedido
+    JOIN estado_pedido ep ON ep.id_estado = p.id_estado
+    JOIN cliente c      ON c.id_cliente  = p.id_cliente
     WHERE pr.id_ruta = :id_ruta
     ORDER BY pr.orden ASC
 ");
@@ -84,27 +85,28 @@ foreach ($rutasDB as $ruta) {
     foreach ($paradasDB as $p) {
         $paradas[] = [
             'id'                => (string)$p['id_parada'],
-            'id_pedido'         => (int)$p['id_pedido'],
-            'id_cliente'        => (int)$p['id_cliente'],   // ← NUEVO
-            'orden'             => (int)$p['orden'],
-            'clientDescription' => $p['nombre'] . ' ' . $p['apellido'],
-            'address'           => $p['domicilio'] . ', ' . $p['localidad'],
-            'telefono'          => $p['telefono'] ?? '',
-            'observaciones'     => $p['observaciones_cliente'] ?? '',
+            'id_pedido'         => (int)   $p['id_pedido'],
+            'id_cliente'        => (int)   $p['id_cliente'],
+            'id_estado'         => (int)   $p['id_estado'],
+            'estado_nombre'     =>         $p['estado_nombre'],
+            'orden'             => (int)   $p['orden'],
+            'clientDescription' =>         $p['nombre'] . ' ' . $p['apellido'],
+            'address'           =>         $p['domicilio'] . ', ' . $p['localidad'],
+            'telefono'          =>         $p['telefono'] ?? '',
+            'observaciones'     =>         $p['observaciones_cliente'] ?? '',
         ];
     }
 
     $rutas[] = [
-        'id'           => (string)$ruta['id_ruta'],
-        'nombre'       => 'Ruta ' . ucfirst($ruta['turno']) . ' — ' . date('d/m/Y', strtotime($ruta['fecha_planificada'])),
-        'fecha'        => date('d/m/Y', strtotime($ruta['fecha_planificada'])),
-        'turno'        => $ruta['turno'],
-        'estado'       => $ruta['estado'],
-        'repartidor'   => $ruta['repartidor'],
-        'observaciones'=> $ruta['observaciones'] ?? '',
-        'paradas'      => $paradas,
+        'id'            => (string)$ruta['id_ruta'],
+        'nombre'        => 'Ruta ' . ucfirst($ruta['turno']) . ' — ' . date('d/m/Y', strtotime($ruta['fecha_planificada'])),
+        'fecha'         => date('d/m/Y', strtotime($ruta['fecha_planificada'])),
+        'turno'         => $ruta['turno'],
+        'estado'        => $ruta['estado'],
+        'repartidor'    => $ruta['repartidor'],
+        'observaciones' => $ruta['observaciones'] ?? '',
+        'paradas'       => $paradas,
     ];
 }
 
 apiOk(['rutas' => $rutas]);
-
