@@ -21,6 +21,7 @@ $stmt = $conexionbd->prepare("
     SELECT id_producto, nombre, precio_unitario
     FROM producto
     WHERE activo = true
+      AND visible_portal = 1
     ORDER BY nombre ASC
 ");
 $stmt->execute();
