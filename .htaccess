@@ -69,6 +69,9 @@ RewriteRule ^pedidos/modificarPedido/([a-zA-Z0-9_-]+)$ /VISTA/pedidos/modificarP
 RewriteRule ^pedidos/listado$ /VISTA/pedidos/listadoPedidos.php [L,NC]
 RewriteRule ^pedidos/eliminarpedido/([a-zA-Z0-9_-]+)$ /CONTROLADOR/pedidos/eliminarPedido.php?id=$1 [L,NC]
 RewriteRule ^pedidos/finalizarPedido/([a-zA-Z0-9_-]+)$ /CONTROLADOR/pedidos/finalizarPedido.php?id=$1 [L,NC]
+RewriteRule ^pedidos/actualizarEstadoRutas$ /CONTROLADOR/pedidos/actualizarEstadoRutas.php [L,NC]
+
+
 
 #REPORTES
 RewriteRule ^reportes/reportePedidosTotal$ /VISTA/reportes/reportePedidosTotal.php [L,NC]

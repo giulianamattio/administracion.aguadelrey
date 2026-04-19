@@ -50,6 +50,10 @@ require_once($_SERVER['DOCUMENT_ROOT'] . '/CONTROLADOR/pedidos/listaRutas.php');
                     <a href="/pedidos/nuevaRutaReparto" class="btn btn-success btn-sm">
                       <i class="fas fa-plus mr-1"></i> Nueva ruta
                     </a>
+
+                    <button type="button" class="btn btn-info btn-sm" id="btnActualizarEstados">
+                      <i class="fas fa-sync-alt mr-1"></i> Actualizar estado de rutas
+                    </button>
                   </div>
                 </div>
 
@@ -80,10 +84,10 @@ require_once($_SERVER['DOCUMENT_ROOT'] . '/CONTROLADOR/pedidos/listaRutas.php');
                     <label class="mr-1 small">Estado:</label>
                     <select name="estado" class="form-control form-control-sm">
                       <option value="">Todos</option>
-                      <option value="planificada" <?= $filtroEstado === 'planificada' ? 'selected' : '' ?>>Planificada</option>
-                      <option value="en_curso"    <?= $filtroEstado === 'en_curso'    ? 'selected' : '' ?>>En curso</option>
-                      <option value="finalizada"  <?= $filtroEstado === 'finalizada'  ? 'selected' : '' ?>>Finalizada</option>
-                      <option value="cancelada"   <?= $filtroEstado === 'cancelada'   ? 'selected' : '' ?>>Cancelada</option>
+                      <option value="1" <?= $filtroEstado === '1' ? 'selected' : '' ?>>Planificada</option>
+                      <option value="2" <?= $filtroEstado === '2'    ? 'selected' : '' ?>>En curso</option>
+                      <option value="3" <?= $filtroEstado === '3'  ? 'selected' : '' ?>>Finalizada</option>
+                      <option value="4" <?= $filtroEstado === '4'   ? 'selected' : '' ?>>Cancelada</option>
                     </select>
                   </div>
 
@@ -123,6 +127,7 @@ require_once($_SERVER['DOCUMENT_ROOT'] . '/CONTROLADOR/pedidos/listaRutas.php');
                       <th>Repartidor</th>
                       <th>Paradas</th>
                       <th>Bidones vacíos</th>
+                      <th>KM recorridos</th>
                       <th>Estado</th>
                       <th>Acciones</th>
                     </tr>
@@ -137,18 +142,19 @@ require_once($_SERVER['DOCUMENT_ROOT'] . '/CONTROLADOR/pedidos/listaRutas.php');
                           <td><?= htmlspecialchars($ruta['repartidor'] ?? '-') ?></td>
                           <td class="text-center"><?= $ruta['total_paradas'] ?></td>
                           <td class="text-center"><?= $ruta['total_bidones_vacios'] ?></td>
+                          <td class="text-center"><?= $ruta['km_recorridos'] ?></td>
                           <td>
                             <?php
                             $badgeClass = match($ruta['estado']) {
-                                'planificada' => 'badge-warning',
-                                'en_curso'    => 'badge-primary',
-                                'finalizada'  => 'badge-success',
-                                'cancelada'   => 'badge-danger',
+                                1 => 'badge-warning',
+                                2 => 'badge-primary',
+                                3 => 'badge-success',
+                                4 => 'badge-danger',
                                 default       => 'badge-secondary'
                             };
                             ?>
                             <span class="badge <?= $badgeClass ?>">
-                              <?= ucfirst($ruta['estado']) ?>
+                              <?= ucfirst($ruta['nombre_estado_ruta']) ?>
                             </span>
                           </td>
                           <td>
@@ -162,6 +168,7 @@ require_once($_SERVER['DOCUMENT_ROOT'] . '/CONTROLADOR/pedidos/listaRutas.php');
                               <i class="fas fa-info-circle fa-lg" style="color:#17a2b8;"></i>
                             </a>
                             &nbsp;
+                            <?php if($ruta['estado'] == 1) : ?>
                             <!-- Modificar -->
                             <a href="/pedidos/modificarRutaReparto/<?= $ruta['id_ruta'] ?>"
                                title="Modificar" style="color:#ffc107;">
@@ -177,6 +184,7 @@ require_once($_SERVER['DOCUMENT_ROOT'] . '/CONTROLADOR/pedidos/listaRutas.php');
                                title="Eliminar" style="color:#dc3545;">
                               <i class="fas fa-minus-square fa-lg"></i>
                             </a>
+                            <?php endif; ?>
                           </td>
                         </tr>
                       <?php endforeach; ?>
@@ -240,18 +248,18 @@ require_once($_SERVER['DOCUMENT_ROOT'] . '/CONTROLADOR/pedidos/listaRutas.php');
     <div class="modal-dialog">
       <div class="modal-content">
         <div class="modal-header">
-          <h4 class="modal-title">Eliminar ruta</h4>
+          <h4 class="modal-title">Cancelar ruta</h4>
           <button type="button" class="close" data-dismiss="modal">&times;</button>
         </div>
         <form action="/pedidos/eliminarRuta" method="POST">
           <input type="hidden" name="idRuta" id="eliminar-id">
           <div class="modal-body">
-            <p>¿Confirmás la eliminación de la ruta del <strong id="eliminar-fecha"></strong> - Turno <strong id="eliminar-turno"></strong>?</p>
+            <p>¿Confirmás la cancelación de la ruta del <strong id="eliminar-fecha"></strong> - Turno <strong id="eliminar-turno"></strong>?</p>
             <p class="text-danger">Los pedidos volverán al estado pendiente.</p>
           </div>
           <div class="modal-footer justify-content-between">
             <button type="button" class="btn btn-default" data-dismiss="modal">Cancelar</button>
-            <button type="submit" class="btn btn-danger">Eliminar</button>
+            <button type="submit" class="btn btn-danger">Cancelar ruta</button>
           </div>
         </form>
       </div>
@@ -288,8 +296,8 @@ document.querySelectorAll('.btn-ver-paradas').forEach(function(btn) {
                 }
                 let html = '<ol>';
                 data.forEach(function(p) {
-                    html += '<li><strong>' + p.nombre + ' ' + p.apellido + '</strong> — '
-                          + p.domicilio + ' — <em>' + p.observaciones + '</em></li>';
+                    html += '<li><strong> (#'+p.id_pedido+')' + p.nombre + ' ' + p.apellido + '</strong> — '
+                          + p.domicilio + ' — <em>' + p.observaciones + '</em> <strong>'+p.estado+'</strong> </li>';
                 });
                 html += '</ol>';
                 document.getElementById('modalParadasBody').innerHTML = html;
@@ -325,6 +333,35 @@ $(document).on('click', '#paginacion .page-link', function(e) {
         $('#paginacion').replaceWith($nuevo.find('#paginacion'));
         $('#infoRutas').replaceWith($nuevo.find('#infoRutas'));
     });
+});
+
+
+// Actualizar estado de rutas
+document.getElementById('btnActualizarEstados').addEventListener('click', function() {
+    const btn = this;
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i> Actualizando...';
+
+    fetch('/pedidos/actualizarEstadoRutas', { method: 'POST' })
+        .then(r => r.json())
+        .then(data => {
+            if (data.actualizadas !== undefined) {
+                const msg = data.actualizadas > 0
+                    ? '✅ ' + data.actualizadas + ' ruta(s) marcada(s) como completada.'
+                    : 'ℹ️ No hay rutas para actualizar.';
+                // Mostrar alerta y recargar tabla
+                const alerta = '<div class="alert alert-info alert-dismissible">'
+                    + '<button type="button" class="close" data-dismiss="alert">&times;</button>'
+                    + msg + '</div>';
+                document.querySelector('.card-body').insertAdjacentHTML('afterbegin', alerta);
+                if (data.actualizadas > 0) location.reload();
+            }
+        })
+        .catch(() => alert('Error al actualizar estados.'))
+        .finally(() => {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fas fa-sync-alt mr-1"></i> Actualizar estado de rutas';
+        });
 });
 </script>
 </body>

@@ -16,6 +16,8 @@ $turno         = $_POST['turno']                ?? '';
 $idRepartidor  = !empty($_POST['id_repartidor']) ? (int)$_POST['id_repartidor'] : null;
 $observaciones = trim($_POST['observaciones']   ?? '');
 $pedidosOrden  = trim($_POST['pedidos_orden']   ?? '');
+$kmRecorridos = isset($_POST['km_recorridos']) ? (float)$_POST['km_recorridos'] : 0;
+
 
 if (!$idRuta || !$fecha || !$turno || empty($pedidosOrden)) {
     header('Location: /pedidos/modificarRutaReparto/' . $idRuta . '?error=Datos+incompletos');
@@ -43,6 +45,7 @@ try {
             turno             = :turno,
             id_repartidor     = :rep,
             observaciones     = :obs,
+            km_recorridos     = :km_recorridos,   
             updated_at        = NOW()
         WHERE id_ruta = :id
     ");
@@ -51,6 +54,7 @@ try {
         ':turno' => $turno,
         ':rep'   => $idRepartidor,
         ':obs'   => $observaciones ?: null,
+        ':km_recorridos'  => $kmRecorridos,
         ':id'    => $idRuta,
     ]);
 

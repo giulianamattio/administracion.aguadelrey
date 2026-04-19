@@ -11,6 +11,8 @@ $turno       = trim($_POST['turno']         ?? '');
 $repartidor  = (int)($_POST['id_repartidor']?? 0);
 $pedidosIds  = $_POST['pedidos']            ?? [];
 $obs         = trim($_POST['observaciones'] ?? '');
+$kmRecorridos = isset($_POST['km_recorridos']) ? (float)$_POST['km_recorridos'] : 0;
+
 
 // Validaciones
 if (empty($fecha) || empty($turno) || empty($pedidosIds)) {
@@ -22,7 +24,7 @@ if (empty($fecha) || empty($turno) || empty($pedidosIds)) {
 $stmtCheck = $conexionbd->prepare("
     SELECT id_ruta FROM ruta_reparto
     WHERE fecha_planificada = :fecha AND turno = :turno
-    AND estado != 'cancelada'
+    AND estado != 4
 ");
 $stmtCheck->execute([':fecha' => $fecha, ':turno' => $turno]);
 if ($stmtCheck->fetch()) {
@@ -58,9 +60,9 @@ usort($pedidosData, function($a, $b) {
 // Insertar la ruta
 $stmtRuta = $conexionbd->prepare("
     INSERT INTO ruta_reparto
-        (id_repartidor, estado, fecha_planificada, turno, observaciones, created_at, updated_at)
+        (id_repartidor, estado, fecha_planificada, turno, observaciones, created_at, updated_at, km_recorridos)
     VALUES
-        (:rep, 'planificada', :fecha, :turno, :obs, NOW(), NOW())
+        (:rep, 1, :fecha, :turno, :obs, NOW(), NOW(), :kmRecorridos)
     RETURNING id_ruta
 ");
 $stmtRuta->execute([
@@ -68,6 +70,7 @@ $stmtRuta->execute([
     ':fecha' => $fecha,
     ':turno' => $turno,
     ':obs'   => $obs ?: null,
+    ':kmRecorridos'   => $kmRecorridos ?: null,
 ]);
 $idRuta = $stmtRuta->fetchColumn();
 

@@ -15,10 +15,13 @@ $stmt = $conexionbd->prepare("
         c.nombre,
         c.apellido,
         c.domicilio,
-        COALESCE(p.observaciones_cliente, '') AS observaciones
+        p.id_pedido,
+        COALESCE(p.observaciones_cliente, '') AS observaciones,
+        ep.nombre AS estado
     FROM parada_ruta pr
     JOIN pedido p  ON p.id_pedido  = pr.id_pedido
     JOIN cliente c ON c.id_cliente = p.id_cliente
+    LEFT JOIN estado_pedido ep ON ep.id_estado = p.id_estado
     WHERE pr.id_ruta = :id
     ORDER BY pr.orden ASC
 ");

@@ -27,12 +27,12 @@ foreach ($pedidosEnRuta as $p) {
     $stmtReset->execute([':id' => $p['id_pedido']]);
 }
 
-// Eliminar paradas
-$conexionbd->prepare("DELETE FROM parada_ruta WHERE id_ruta = :id")
+// Cancelar paradas
+$conexionbd->prepare("UPDATE parada_ruta SET fecha_baja = NOW() WHERE id_ruta = :id")
            ->execute([':id' => $idRuta]);
 
-// Eliminar ruta
-$conexionbd->prepare("DELETE FROM ruta_reparto WHERE id_ruta = :id")
+// Cancelar ruta
+$conexionbd->prepare("UPDATE ruta_reparto SET estado = 4, fecha_baja = NOW() WHERE id_ruta = :id")
            ->execute([':id' => $idRuta]);
 
 header('Location: /pedidos/gestionarRutaRepartos?ok=eliminada');

@@ -52,7 +52,9 @@ $stmt = $conexionbd->prepare("
         r.fecha_planificada,
         r.turno,
         r.estado,
+        ep.nombre_estado_ruta,
         r.observaciones,
+        r.km_recorridos,
         CONCAT(u.nombre, ' ', u.apellido) AS repartidor,
         COUNT(p.id_parada)   AS total_paradas,
         SUM(ped.bidones_vacios) AS total_bidones_vacios
@@ -60,9 +62,10 @@ $stmt = $conexionbd->prepare("
     LEFT JOIN usuario_empleado u ON u.id_empleado = r.id_repartidor
     LEFT JOIN parada_ruta p      ON p.id_ruta     = r.id_ruta
     LEFT JOIN pedido ped         ON p.id_pedido   = ped.id_pedido
+    LEFT JOIN estado_pedido ep   ON ep.id_estado  = r.estado
     $where
     GROUP BY r.id_ruta, r.fecha_planificada, r.turno, r.estado,
-             r.observaciones, u.nombre, u.apellido
+             r.observaciones, u.nombre, u.apellido, ep.nombre_estado_ruta, r.km_recorridos
     ORDER BY r.fecha_planificada DESC, r.turno ASC
     LIMIT :limite OFFSET :offset
 ");

@@ -50,7 +50,7 @@ $stmtDisponibles = $conexionbd->prepare("
       AND p.id_pedido NOT IN (
           SELECT pr2.id_pedido FROM parada_ruta pr2
           JOIN ruta_reparto r2 ON r2.id_ruta = pr2.id_ruta
-          WHERE r2.estado IN ('planificada', 'en_curso')
+          WHERE r2.estado IN (1, 3)
       )
     ORDER BY c.apellido ASC
 ");
@@ -173,7 +173,10 @@ $pagina = 'Modificar ruta de reparto';
               <hr>
 
               <!-- Paradas actuales con drag & drop para reordenar -->
-              <label>Paradas de la ruta <small class="text-muted">(arrastrá para reordenar)</small></label>
+              <label>
+                Paradas de la ruta <small class="text-muted">(arrastrá para reordenar)</small>
+                <span id="distanciaTotal" class="badge badge-info ml-2" style="display:none;"></span>
+              </label>
               <ul id="listaParadas" class="list-group mb-3" style="max-width:700px;">
                 <?php foreach ($paradas as $p): ?>
                   <li class="list-group-item d-flex justify-content-between align-items-center"
@@ -240,6 +243,7 @@ $pagina = 'Modificar ruta de reparto';
 
               <!-- Campo hidden con el orden final de pedidos -->
               <input type="hidden" name="pedidos_orden" id="pedidosOrden">
+              <input type="hidden" name="km_recorridos" id="kmRecorridos">
 
               <div class="card-header"></div>
               <div class="row align-items-center mt-3">
@@ -270,7 +274,47 @@ const GALPON = { lat: <?= $galpon['lat'] ?>, lng: <?= $galpon['lng'] ?> };
 
 const lista = document.getElementById('listaParadas');
 
-// Eliminar parada → la devuelve a la lista de pendientes
+// ── Haversine ────────────────────────────────────────────────────────────────
+function distKm(lat1, lng1, lat2, lng2) {
+    const R = 6371, dLat=(lat2-lat1)*Math.PI/180, dLng=(lng2-lng1)*Math.PI/180;
+    const a = Math.sin(dLat/2)**2 + Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLng/2)**2;
+    return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+}
+
+// ── Distancia total (galpón → parada1 → parada2 → … ) ───────────────────────
+function calcularDistanciaTotal() {
+    const items = Array.from(lista.querySelectorAll('li'));
+    const badge = document.getElementById('distanciaTotal');
+    const conCoords = items.filter(li => li.dataset.lat && li.dataset.lng);
+
+    if (conCoords.length === 0) {
+        badge.style.display = 'none';
+        document.getElementById('kmRecorridos').value = 0; // ← agregar
+        return;
+    }
+
+    let totalKm = 0;
+    let actual  = GALPON;
+    conCoords.forEach(li => {
+        const lat = parseFloat(li.dataset.lat);
+        const lng = parseFloat(li.dataset.lng);
+        totalKm  += distKm(actual.lat, actual.lng, lat, lng);
+        actual    = { lat, lng };
+    });
+
+    badge.style.display = '';
+    badge.textContent   = 'Distancia estimada: ' + totalKm.toFixed(1) + ' km';
+    document.getElementById('kmRecorridos').value = totalKm.toFixed(2); // ← agregar
+}
+
+// ── Actualizar campo hidden + distancia ─────────────────────────────────────
+function actualizarOrden() {
+    const ids = Array.from(lista.querySelectorAll('li')).map(li => li.dataset.id);
+    document.getElementById('pedidosOrden').value = ids.join(',');
+    calcularDistanciaTotal();
+}
+
+// ── Eliminar parada ──────────────────────────────────────────────────────────
 lista.addEventListener('click', function(e) {
     const btn = e.target.closest('.btn-eliminar-parada');
     if (!btn) return;
@@ -278,14 +322,13 @@ lista.addEventListener('click', function(e) {
         alert('La ruta debe tener al menos una parada.');
         return;
     }
-    const li       = btn.closest('li');
-    const idPed    = li.dataset.id;
-    const nombre   = li.dataset.nombre   || '';
-    const domicilio= li.dataset.domicilio|| '';
-    const lat      = li.dataset.lat      || '';
-    const lng      = li.dataset.lng      || '';
+    const li        = btn.closest('li');
+    const idPed     = li.dataset.id;
+    const nombre    = li.dataset.nombre    || '';
+    const domicilio = li.dataset.domicilio || '';
+    const lat       = li.dataset.lat       || '';
+    const lng       = li.dataset.lng       || '';
 
-    // Devolver a la lista de pendientes
     const contenedor = document.getElementById('contenedorPendientes');
     if (contenedor && !contenedor.querySelector(`[data-id="${idPed}"]`)) {
         const div = document.createElement('div');
@@ -306,7 +349,7 @@ lista.addEventListener('click', function(e) {
     actualizarOrden();
 });
 
-// Agregar seleccionados → desaparecen de pendientes, aparecen en paradas
+// ── Agregar pedidos seleccionados ────────────────────────────────────────────
 document.getElementById('btnAgregar')?.addEventListener('click', function() {
     const checks = document.querySelectorAll('.chk-agregar:checked');
     if (checks.length === 0) { alert('Seleccioná al menos un pedido.'); return; }
@@ -318,12 +361,12 @@ document.getElementById('btnAgregar')?.addEventListener('click', function() {
         }
         const tieneCoords = c.dataset.lat && c.dataset.lng;
         const li = document.createElement('li');
-        li.className        = 'list-group-item d-flex justify-content-between align-items-center';
-        li.dataset.id       = c.dataset.id;
-        li.dataset.lat      = c.dataset.lat;
-        li.dataset.lng      = c.dataset.lng;
-        li.dataset.nombre   = c.dataset.nombre;
-        li.dataset.domicilio= c.dataset.domicilio;
+        li.className         = 'list-group-item d-flex justify-content-between align-items-center';
+        li.dataset.id        = c.dataset.id;
+        li.dataset.lat       = c.dataset.lat;
+        li.dataset.lng       = c.dataset.lng;
+        li.dataset.nombre    = c.dataset.nombre;
+        li.dataset.domicilio = c.dataset.domicilio;
         li.innerHTML = `
             <span>
               <i class="fas fa-grip-vertical text-muted mr-2" style="cursor:grab;"></i>
@@ -341,14 +384,7 @@ document.getElementById('btnAgregar')?.addEventListener('click', function() {
     actualizarOrden();
 });
 
-// Haversine
-function distKm(lat1, lng1, lat2, lng2) {
-    const R = 6371, dLat=(lat2-lat1)*Math.PI/180, dLng=(lng2-lng1)*Math.PI/180;
-    const a = Math.sin(dLat/2)**2 + Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLng/2)**2;
-    return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-}
-
-// Nearest Neighbor
+// ── Nearest Neighbor ─────────────────────────────────────────────────────────
 function nearestNeighbor(origen, destinos) {
     let pend=[...destinos], ord=[], act=origen;
     while(pend.length){
@@ -359,31 +395,28 @@ function nearestNeighbor(origen, destinos) {
     return ord;
 }
 
-// Recalcular orden óptimo
+// ── Recalcular orden óptimo ──────────────────────────────────────────────────
 document.getElementById('btnRecalcular').addEventListener('click', function() {
-    const items = Array.from(lista.querySelectorAll('li'));
-    const conCoords = items.filter(li=>li.dataset.lat&&li.dataset.lng)
-        .map(li=>({el:li, lat:parseFloat(li.dataset.lat), lng:parseFloat(li.dataset.lng)}));
-    const sinCoords = items.filter(li=>!li.dataset.lat||!li.dataset.lng);
-    if(conCoords.length===0){ alert('Ninguna parada tiene coordenadas para optimizar.'); return; }
+    const items     = Array.from(lista.querySelectorAll('li'));
+    const conCoords = items.filter(li => li.dataset.lat && li.dataset.lng)
+        .map(li => ({ el: li, lat: parseFloat(li.dataset.lat), lng: parseFloat(li.dataset.lng) }));
+    const sinCoords = items.filter(li => !li.dataset.lat || !li.dataset.lng);
+
+    if (conCoords.length === 0) { alert('Ninguna parada tiene coordenadas para optimizar.'); return; }
+
     const ordenado = nearestNeighbor(GALPON, conCoords);
     lista.innerHTML = '';
-    [...ordenado.map(d=>d.el), ...sinCoords].forEach(el=>lista.appendChild(el));
+    [...ordenado.map(d => d.el), ...sinCoords].forEach(el => lista.appendChild(el));
     actualizarOrden();
 });
 
-// Actualizar el campo hidden en tiempo real cada vez que cambia la lista
-function actualizarOrden() {
-    const ids = Array.from(lista.querySelectorAll('li')).map(li => li.dataset.id);
-    document.getElementById('pedidosOrden').value = ids.join(',');
-}
-
-// Actualizar al cargar la página
-actualizarOrden();
-
-// Actualizar cuando SortableJS reordena
+// ── SortableJS (drag & drop) ─────────────────────────────────────────────────
 Sortable.create(lista, { animation: 150, handle: '.fa-grip-vertical', onEnd: actualizarOrden });
+
+// ── Init ─────────────────────────────────────────────────────────────────────
+actualizarOrden();
 </script>
+
 </body>
 </html>
 

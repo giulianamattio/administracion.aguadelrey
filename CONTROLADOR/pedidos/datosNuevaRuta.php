@@ -42,7 +42,7 @@ $stmtPedidos = $conexionbd->prepare("
       AND p.id_pedido NOT IN (
           SELECT pr.id_pedido FROM parada_ruta pr
           JOIN ruta_reparto r ON r.id_ruta = pr.id_ruta
-          WHERE r.estado IN ('planificada', 'en_curso')
+          WHERE r.estado IN (1, 2)
       )
     ORDER BY p.fecha_entrega_estimada ASC, c.apellido ASC
 ");

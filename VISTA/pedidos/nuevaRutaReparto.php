@@ -70,7 +70,7 @@ require_once($_SERVER['DOCUMENT_ROOT'] . '/CONTROLADOR/pedidos/datosNuevaRuta.ph
                 </div>
 
                 <form action="/pedidos/guardarNuevaRuta" method="POST" id="formNuevaRuta">
-
+                  <input type="hidden" name="km_recorridos" id="kmRecorridos">
                   <div class="row">
                     <div class="col-sm-3">
                       <div class="form-group">
@@ -316,6 +316,8 @@ document.getElementById('btnCalcular').addEventListener('click', function() {
     let totalKm = optimizados.reduce((sum, p) => sum + (p.distancia || 0), 0);
     document.getElementById('distanciaTotal').textContent =
         'Distancia estimada: ' + totalKm.toFixed(1) + ' km';
+
+    document.getElementById('kmRecorridos').value = totalKm.toFixed(2); // ← agregar
 
     // Mostrar tabla
     const tbody = document.getElementById('tbodyRuta');
