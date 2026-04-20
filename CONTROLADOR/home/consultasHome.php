@@ -1,6 +1,6 @@
 <?php
 // Rutas planificadas
-$stmt = $conexionbd->query("SELECT COUNT(*) AS total FROM ruta_reparto WHERE estado = 'planificada'");
+$stmt = $conexionbd->query("SELECT COUNT(*) AS total FROM ruta_reparto WHERE estado = 1");
 $rutasPlanificadas = $stmt->fetch()['total'];
 
 // Pedidos pendientes
