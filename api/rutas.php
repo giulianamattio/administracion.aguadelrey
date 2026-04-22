@@ -21,6 +21,7 @@ $idRol      = $payload['id_rol'];
 
 $hoy = date('Y-m-d');
 
+// estados ruta_reparto: 1=Planificada, 2=En curso, 3=Completada, 4=Cancelada
 if ($idRol == 1) {
     $stmtRutas = $conexionbd->prepare("
         SELECT r.id_ruta, r.estado, r.fecha_planificada, r.turno,
@@ -28,7 +29,7 @@ if ($idRol == 1) {
                COALESCE(u.nombre || ' ' || u.apellido, 'Sin asignar') AS repartidor
         FROM ruta_reparto r
         LEFT JOIN usuario_empleado u ON u.id_empleado = r.id_repartidor
-        WHERE r.estado IN ('planificada', 'en_curso')
+        WHERE r.estado IN (1, 2)
           AND r.fecha_planificada >= :hoy
         ORDER BY r.fecha_planificada ASC, r.turno ASC
     ");
@@ -41,7 +42,7 @@ if ($idRol == 1) {
         FROM ruta_reparto r
         LEFT JOIN usuario_empleado u ON u.id_empleado = r.id_repartidor
         WHERE r.id_repartidor = :id
-          AND r.estado IN ('planificada', 'en_curso')
+          AND r.estado IN (1, 2)
           AND r.fecha_planificada >= :hoy
         ORDER BY r.fecha_planificada ASC, r.turno ASC
     ");
