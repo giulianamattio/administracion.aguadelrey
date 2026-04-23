@@ -7,7 +7,7 @@
 //  Response: { "ok": true }
 //
 //  Registra que el repartidor visitó el domicilio pero el cliente
-//  no estaba presente. El pedido queda en estado Pendiente (1)
+//  no estaba presente. El pedido pasa a estado 5 (No entregado)
 //  y se registra fecha_ausencia con la fecha/hora del intento.
 // ============================================================
 require_once($_SERVER['DOCUMENT_ROOT'] . '/configuraciones/conexionBD.php');
@@ -32,7 +32,7 @@ if ($id_pedido <= 0) {
     apiError('id_pedido requerido', 400);
 }
 
-// Verificar que el pedido existe y está en estado procesable
+// Verificar que el pedido existe y está en estado procesable (Pendiente o En ruta)
 $stmtCheck = $conexionbd->prepare("
     SELECT id_pedido FROM pedido
     WHERE id_pedido = :id_pedido
@@ -44,10 +44,11 @@ if (!$stmtCheck->fetch()) {
     apiError('Pedido no encontrado o ya fue procesado', 404);
 }
 
-// Registrar fecha_ausencia — el pedido NO cambia de estado, queda Pendiente
+// Marcar como No entregado (id_estado = 5) y registrar fecha_ausencia
 $stmt = $conexionbd->prepare("
     UPDATE pedido
-    SET fecha_ausencia = NOW()
+    SET id_estado     = 5,
+        fecha_ausencia = NOW()
     WHERE id_pedido = :id_pedido
 ");
 $stmt->execute([':id_pedido' => $id_pedido]);
