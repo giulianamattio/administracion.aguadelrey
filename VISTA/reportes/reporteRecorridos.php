@@ -123,6 +123,15 @@ require($_SERVER["DOCUMENT_ROOT"].'/VISTA/css/cssGeneral.php');
           </div>
         </div>
 
+
+        <!-- después del card de filtro de fechas -->
+        <div class="text-right mb-3">
+        <a href="#" data-toggle="modal" data-target="#modalHistoricoNafta">
+            <i class="fas fa-history mr-1"></i>
+            <small>Ver historial de precios de nafta</small>
+        </a>
+        </div>
+
         <!-- ── KPI CARDS ── -->
         <div class="row mb-4">
           <div class="col-sm-6 col-xl-3 mb-3">
@@ -315,6 +324,50 @@ require($_SERVER["DOCUMENT_ROOT"].'/VISTA/css/cssGeneral.php');
 ?>
 <script src="/VISTA/script/reporteRecorridos.js"></script>
 
+
+<!-- Modal Histórico Nafta -->
+<div class="modal fade" id="modalHistoricoNafta">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">
+          <i class="fas fa-gas-pump mr-1"></i> Historial de precios de nafta
+        </h5>
+        <button type="button" class="close" data-dismiss="modal">&times;</button>
+      </div>
+      <div class="modal-body p-0">
+        <table class="table table-sm table-hover mb-0">
+          <thead class="thead-light">
+            <tr>
+              <th>Desde</th>
+              <th>Hasta</th>
+              <th class="text-right">$/litro</th>
+            </tr>
+          </thead>
+          <tbody>
+            <?php
+            $stmtNafta = $conexionbd->query("
+                SELECT fecha_desde, fecha_hasta, precio_por_litro
+                FROM precio_nafta
+                ORDER BY fecha_desde DESC
+            ");
+            foreach ($stmtNafta->fetchAll() as $n):
+            ?>
+            <tr>
+              <td><?= date('d/m/Y', strtotime($n['fecha_desde'])) ?></td>
+              <td><?= $n['fecha_hasta'] ? date('d/m/Y', strtotime($n['fecha_hasta'])) : '<span class="badge badge-success">Vigente</span>' ?></td>
+              <td class="text-right font-weight-bold">$<?= number_format($n['precio_por_litro'], 2, ',', '.') ?></td>
+            </tr>
+            <?php endforeach; ?>
+          </tbody>
+        </table>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default btn-sm" data-dismiss="modal">Cerrar</button>
+      </div>
+    </div>
+  </div>
+</div>
 
 </body>
 </html>

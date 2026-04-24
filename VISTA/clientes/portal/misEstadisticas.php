@@ -53,7 +53,7 @@ $stmtAgua = $conexionbd->prepare("
       AND pp.fecha_baja IS NULL
       AND p.id_estado  != 4
       AND DATE(p.fecha_pedido) BETWEEN :desde AND :hasta
-      AND (pr.nombre ILIKE '%20L%' OR pr.nombre ILIKE '%12L%')
+      AND (pr.nombre ILIKE '%20L%' OR pr.nombre ILIKE '%12L%' OR pr.nombre ILIKE '%10L%')
     GROUP BY pr.nombre
 ");
 $stmtAgua->execute([':id_cliente' => $idCliente, ':desde' => $desde, ':hasta' => $hasta]);
@@ -65,6 +65,8 @@ foreach ($consumoAgua as $item) {
         $totalLitros += $item['total'] * 20;
     } elseif (stripos($item['nombre'], '12L') !== false) {
         $totalLitros += $item['total'] * 12;
+    } elseif (stripos($item['nombre'], '10L') !== false) {
+        $totalLitros += $item['total'] * 10;
     }
 }
 
@@ -221,7 +223,10 @@ $datosMeses      = json_encode(array_map(fn($m) => (int)$m['cantidad'], $pedidos
                 <?php
                 // Desglose por tipo de bidón
                 foreach ($consumoAgua as $item):
-                    $litros = stripos($item['nombre'], '20L') !== false ? 20 : 12;
+                    //$litros = stripos($item['nombre'], '20L') !== false ? 20 : 12;
+                    $litros = stripos($item['nombre'], '20L') !== false ? 20 
+                              : (stripos($item['nombre'], '12 L') !== false ? 12
+                               : 10);
                 ?>
                 <div class="d-flex justify-content-between w-100 px-2" style="font-size:13px;">
                     <span><?= htmlspecialchars($item['nombre']) ?></span>

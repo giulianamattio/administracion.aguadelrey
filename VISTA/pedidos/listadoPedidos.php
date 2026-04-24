@@ -266,6 +266,7 @@ require($_SERVER["DOCUMENT_ROOT"].'/configuraciones/inicializacion.php');
                             case 2: ?><span class="badge badge-primary"><?= $estado?></span><?php break;
                             case 3: ?><span class="badge badge-success"><?= $estado?></span><?php break;
                             case 4: ?><span class="badge badge-danger"><?= $estado?></span><?php break;
+                            case 5: ?><span class="badge badge-dark"><?= $estado?></span><?php break;
                             default: ?><span></span><?php
                           }?>
                         </td>
@@ -287,7 +288,7 @@ require($_SERVER["DOCUMENT_ROOT"].'/configuraciones/inicializacion.php');
                             </button>
                             &nbsp;
                           <?php endif; ?>
-                          <?php if($idEstado == 1 || $idEstado == 2): ?>
+                          <?php if($idEstado == 1 || $idEstado == 2 || $idEstado == 5): ?>
                             <button type="button" class="btn btn-link p-0"
                                     data-toggle="modal"
                                     data-target="#modalFinalizar"

@@ -2,7 +2,10 @@
 // ============================================================
 //  CONTROLADOR/clientes/solicitarResetPassword.php
 // ============================================================
-require_once($_SERVER['DOCUMENT_ROOT'] . '/configuraciones/conexionBD.php');
+require_once($_SERVER['DOCUMENT_ROOT'] . '/configuraciones/inicializacion.php');
+
+$apiKey = getenv('RESEND_API_KEY');
+error_log("API KEY: " . ($apiKey ? 'encontrada ('.strlen($apiKey).' chars)' : 'VACÍA'));
 
 $email = trim($_POST['email'] ?? '');
 
@@ -68,7 +71,7 @@ $htmlBody = "
 
 // Enviar email con Resend API via cURL
 $payload = json_encode([
-    'from'    => 'Agua del Rey <admin@aguadelrey.com>',
+    'from'    => 'Agua del Rey <admin@aguadelrey.com.ar>',
     'to'      => [$email],
     'subject' => 'Restablecer contraseña - Agua del Rey',
     'html'    => $htmlBody,
@@ -77,7 +80,7 @@ $payload = json_encode([
 $ch = curl_init('https://api.resend.com/emails');
 curl_setopt($ch, CURLOPT_POST, true);
 curl_setopt($ch, CURLOPT_HTTPHEADER, [
-    'Authorization: Bearer ' . getenv('RESEND_API_KEY'),
+    'Authorization: Bearer ' . RESEND_API_KEY,
     'Content-Type: application/json',
 ]);
 curl_setopt($ch, CURLOPT_POSTFIELDS, $payload);
