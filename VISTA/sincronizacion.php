@@ -1,3 +1,4 @@
+<?php require($_SERVER["DOCUMENT_ROOT"].'/configuraciones/inicializacion.php');?>
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -5,7 +6,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <?php
   $pagina = 'Sincronización';
-  require($_SERVER["DOCUMENT_ROOT"].'/configuraciones/inicializacion.php');
   require($_SERVER["DOCUMENT_ROOT"].'/VISTA/css/cssGeneral.php');
   ?>
   <title>Agua del Rey | <?= $pagina ?></title>

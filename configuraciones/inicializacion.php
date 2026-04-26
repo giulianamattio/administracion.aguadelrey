@@ -9,8 +9,6 @@ require_once($_SERVER['DOCUMENT_ROOT'] . '/configuraciones/session.php');
 
 error_reporting(E_ALL);
 
-define('RESEND_API_KEY', 're_jGcgSkNc_4hGEJAnTaCn6fkrKTvFs42ZC');
-
 require_once($_SERVER['DOCUMENT_ROOT'] . '/configuraciones/conexionBD.php');
 
 // Protección de rutas

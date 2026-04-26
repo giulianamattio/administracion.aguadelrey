@@ -4,9 +4,6 @@
 // ============================================================
 require_once($_SERVER['DOCUMENT_ROOT'] . '/configuraciones/inicializacion.php');
 
-$apiKey = getenv('RESEND_API_KEY');
-error_log("API KEY: " . ($apiKey ? 'encontrada ('.strlen($apiKey).' chars)' : 'VACÍA'));
-
 $email = trim($_POST['email'] ?? '');
 
 if (empty($email) || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
@@ -69,32 +66,24 @@ $htmlBody = "
     </div>
 ";
 
-// Enviar email con Resend API via cURL
-$payload = json_encode([
-    'from'    => 'Agua del Rey <admin@aguadelrey.com.ar>',
-    'to'      => [$email],
-    'subject' => 'Restablecer contraseña - Agua del Rey',
-    'html'    => $htmlBody,
-]);
+// Headers para email HTML
+$headers  = "MIME-Version: 1.0\r\n";
+$headers .= "Content-Type: text/html; charset=UTF-8\r\n";
+$headers .= "From: Agua del Rey <no-reply@aguadelrey.com.ar>\r\n";
+$headers .= "Reply-To: no-reply@aguadelrey.com.ar\r\n";
+$headers .= "X-Mailer: PHP/" . phpversion();
 
-$ch = curl_init('https://api.resend.com/emails');
-curl_setopt($ch, CURLOPT_POST, true);
-curl_setopt($ch, CURLOPT_HTTPHEADER, [
-    'Authorization: Bearer ' . RESEND_API_KEY,
-    'Content-Type: application/json',
-]);
-curl_setopt($ch, CURLOPT_POSTFIELDS, $payload);
-curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+$enviado = mail(
+    $email,
+    '=?UTF-8?B?' . base64_encode('Restablecer contraseña - Agua del Rey') . '?=',
+    $htmlBody,
+    $headers
+);
 
-$response   = curl_exec($ch);
-$httpStatus = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-$curlError  = curl_error($ch);
-
-if ($curlError || $httpStatus >= 400) {
-    error_log("Error enviando email reset (HTTP $httpStatus): $curlError $response");
+if (!$enviado) {
+    error_log("Error enviando email reset a: $email");
 }
 
 header('Location: /clientes/login?reset_ok=1');
 exit;
-
 ?>
