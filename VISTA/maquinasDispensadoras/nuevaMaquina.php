@@ -88,6 +88,18 @@
                       <div class="form-group">
                         <label for="tipo">Tipo</label>
                         <select id="tipo" name="tipo" class="form-control form-control-sm">
+                          <option value="" selected disabled>Seleccione un tipo</option>
+                          <option value="Manual">Manual</option>
+                          <option value="Electrico">El&#233;ctrico</option>
+                          <option value="Digital">Digital</option>
+                        </select>
+                      </div>
+                    </div>
+
+                    <div class="col-sm-4" data-select2-id="45">
+                      <div class="form-group">
+                        <label for="estado">Estado</label>
+                        <select id="estado" name="estado" class="form-control form-control-sm">
                           <option value="" selected disabled>Seleccione un estado</option>
                           <?php
                           $stmtEstados = $conexionbd->prepare("SELECT id_estado, nombre FROM estado_maquina ORDER BY nombre");
@@ -104,7 +116,7 @@
 
                     <div class="col-sm-4">
                       <div class="form-group">
-                        <label for="precio">Precio</label>
+                        <label for="precio">Precio Alquiler</label>
                         <input type="text" id="precio" name="precio" class="form-control form-control-sm"> 
                       </div>
                     </div>
