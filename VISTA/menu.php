@@ -109,6 +109,12 @@ $rol           = $_SESSION['rol']    ?? 0;
             </a>
           </li>
           <li class="nav-item">
+            <a href="/maquinasDispensadoras/listadoArreglos" class="nav-link">
+              <i class="nav-icon fas fa-clipboard-list"></i>
+              <p>Listado Arreglos</p>
+            </a>
+          </li>
+          <li class="nav-item">
             <a href="/maquinasDispensadoras/listado" class="nav-link">
               <i class="nav-icon fas fa-list-ul"></i>
               <p>
