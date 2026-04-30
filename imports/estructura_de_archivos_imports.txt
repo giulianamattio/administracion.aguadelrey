@@ -1,7 +1,0 @@
-productos.csv: 
-id_producto,nombre,precio,fecha_baja 
-1,Bidon 20L,1500,NULL
-
-clientes.csv: 
-nombre,apellido,dni,telefono,email,domicilio,localidad,provincia
-Juan,García,12345678,3564123456, juan@gmail.com, Italia 2000, Frontera, Santa Fe
