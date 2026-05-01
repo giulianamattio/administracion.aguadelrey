@@ -1,8 +1,13 @@
 <?php
-// CONTROLADOR/sincronizacion/sincronizarProductos.php
+ini_set('display_errors', 0);
+error_reporting(E_ALL);
+
 require_once($_SERVER['DOCUMENT_ROOT'] . '/configuraciones/inicializacion.php');
 
 header('Content-Type: application/json; charset=utf-8');
+
+// Si hubo output antes del header (warnings de PHP), lo descartamos
+ob_clean();
 
 $archivo = $_SERVER['DOCUMENT_ROOT'] . '/imports/productos.csv';
 
